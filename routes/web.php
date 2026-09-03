@@ -12,6 +12,9 @@ Route::get('/', function () {
     return view('index', compact('competitions', 'galleries', 'sponsors', 'mediaPartners'));
 });
 
+Route::view('/terms', 'terms')->name('terms');
+Route::view('/privacy', 'privacy')->name('privacy');
+
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CompetitionRegistrationController;
 

@@ -47,7 +47,7 @@
 
   <!-- HERO -->
   <section class="hero" id="home">
-    <canvas id="particleCanvas" width="1920" height="1080"></canvas>
+    <canvas id="particleCanvas"></canvas>
     <div class="hero-grid-overlay"></div>
     <div class="electric-lines">
       <svg class="elec-svg" viewBox="0 0 1440 900" preserveAspectRatio="none">
@@ -145,6 +145,13 @@
 
   <!-- GALLERY -->
   <section class="gallery" id="gallery">
+    <!-- Decorative elements -->
+    <div class="gallery-deco-grid"></div>
+    <div class="gallery-deco-glow"></div>
+    <div class="gallery-deco-corner gallery-deco-corner--tl"></div>
+    <div class="gallery-deco-corner gallery-deco-corner--br"></div>
+    <div class="gallery-deco-arc"></div>
+
     <div class="section-header">
       <span class="section-tag">// MOMENTS</span>
       <h2 class="section-title">Gallery</h2>
@@ -173,6 +180,12 @@
   <!-- ABOUT / CONTACT -->
   <section class="about" id="about">
     <div class="about-bg-glow"></div>
+    <!-- Decorative elements -->
+    <div class="about-deco-grid"></div>
+    <div class="about-deco-corner about-deco-corner--tl"></div>
+    <div class="about-deco-corner about-deco-corner--br"></div>
+    <div class="about-deco-arc about-deco-arc--left"></div>
+    <div class="about-deco-arc about-deco-arc--right"></div>
     <div class="section-header">
       <span class="section-tag">// INFORMATION</span>
       <h2 class="section-title">About & Contact</h2>
@@ -289,8 +302,8 @@
         Uicons by <a href="https://www.flaticon.com/uicons">Flaticon</a>
       </p>
       <div class="footer-links">
-        <a href="#">Privacy</a>
-        <a href="#">Terms</a>
+        <a href="{{ route('privacy') }}">Privacy</a>
+        <a href="{{ route('terms') }}">Terms</a>
         <a href="#about">Contact</a>
       </div>
     </div>

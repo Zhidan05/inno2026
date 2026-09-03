@@ -29,11 +29,11 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         $user = auth()->user();
-        if ($user->hasRole('participant')) {
-            return redirect()->intended('/participant');
+        if ($user->hasRole(['super_admin', 'moderator', 'judge'])) {
+            return redirect()->intended('/admin');
         }
 
-        return redirect()->intended('/admin');
+        return redirect('/dashboard');
     }
 
     /**

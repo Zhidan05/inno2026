@@ -27,6 +27,13 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            ->sidebarCollapsibleOnDesktop()
+            ->brandName('IEE 2026')
+            ->brandLogo(asset('images/Logo.png'))
+            ->brandLogoHeight('2.5rem')
+            ->favicon(asset('images/Logo.png'))
+            ->font('Exo 2')
+            ->defaultThemeMode(\Filament\Enums\ThemeMode::Dark)
             ->colors([
                 'primary' => \Filament\Support\Colors\Color::hex('#FFC209'),
                 'gray' => [
@@ -43,6 +50,14 @@ class AdminPanelProvider extends PanelProvider
                     950 => '#050811',
                 ],
             ])
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::HEAD_END,
+                fn (): string => '<style>
+                    .dark .fi-sidebar { background-color: #0b1120 !important; }
+                    .dark .fi-main { background-color: #030712 !important; }
+                    .dark .fi-topbar { background-color: #0b1120 !important; border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important; }
+                </style>'
+            )
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([

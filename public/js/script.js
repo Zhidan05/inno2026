@@ -34,11 +34,36 @@
   const ctx = canvas.getContext('2d');
 
   let W, H, particles = [];
-  const COUNT = 80;
+
+  function getParticleCount() {
+    const w = window.innerWidth;
+    if (w < 640) return 30;
+    if (w < 1024) return 50;
+    return 80;
+  }
+
+  function getMaxDist() {
+    return window.innerWidth < 640 ? 70 : 110;
+  }
+
+  let currentCount = getParticleCount();
 
   function resize() {
     W = canvas.width = canvas.offsetWidth;
     H = canvas.height = canvas.offsetHeight;
+
+    // Re-adjust particle count on significant resize
+    const newCount = getParticleCount();
+    if (newCount !== currentCount) {
+      currentCount = newCount;
+      if (particles.length > currentCount) {
+        particles.length = currentCount;
+      } else {
+        while (particles.length < currentCount) {
+          particles.push(new Particle());
+        }
+      }
+    }
   }
   window.addEventListener('resize', resize);
   resize();
@@ -74,11 +99,11 @@
     }
   }
 
-  for (let i = 0; i < COUNT; i++) particles.push(new Particle());
+  for (let i = 0; i < currentCount; i++) particles.push(new Particle());
 
   // Connection lines between nearby particles
   function drawConnections() {
-    const maxDist = 110;
+    const maxDist = getMaxDist();
     for (let i = 0; i < particles.length; i++) {
       for (let j = i + 1; j < particles.length; j++) {
         const dx = particles[i].x - particles[j].x;

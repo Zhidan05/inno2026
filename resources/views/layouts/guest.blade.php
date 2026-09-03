@@ -47,13 +47,13 @@
             </div>
         </nav>
 
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-24 sm:pt-0 relative overflow-hidden">
+        <div class="min-h-screen flex flex-col items-center pt-24 pb-12 relative overflow-x-hidden">
             <!-- Glow Effect -->
-            <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-[#303AE4] rounded-full mix-blend-screen filter blur-[100px] opacity-30"></div>
-            <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#FFC209] rounded-full mix-blend-screen filter blur-[100px] opacity-20"></div>
+            <div class="fixed top-1/4 left-1/4 w-96 h-96 bg-[#303AE4] rounded-full mix-blend-screen filter blur-[100px] opacity-30 pointer-events-none z-0"></div>
+            <div class="fixed bottom-1/4 right-1/4 w-96 h-96 bg-[#FFC209] rounded-full mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none z-0"></div>
             
-            <div class="relative z-10 w-full flex justify-center mt-20 mb-10">
-                <div class="w-full sm:max-w-md px-6 py-8 bg-[#111827] shadow-[0_0_30px_rgba(255,194,9,0.15)] border border-[#303AE4]/30 overflow-hidden sm:rounded-2xl relative z-10">
+            <div class="relative z-10 w-full sm:max-w-md px-4 sm:px-0 mt-4 sm:mt-10 flex-grow flex flex-col justify-center">
+                <div class="w-full px-6 py-8 bg-[#111827] shadow-[0_0_30px_rgba(255,194,9,0.15)] border border-[#303AE4]/30 rounded-2xl relative z-10">
                     {{ $slot }}
                 </div>
             </div>
