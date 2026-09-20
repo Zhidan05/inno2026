@@ -2,8 +2,12 @@
 
 namespace App\Providers;
 
+use App\Enums\UserRole;
+use App\Models\User;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Spatie\Permission\Models\Role;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,23 +24,31 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        \Illuminate\Support\Facades\Gate::before(function (\App\Models\User $user, string $ability, array $arguments = []) {
-            if ($user->hasRole(\App\Enums\UserRole::ADMIN->value)) {
-                // Do not bypass authorization for role management.
-                if (str_ends_with($ability, '_role')) {
-                    return null; 
-                }
-                
-                // Filament policies pass the model class or instance as the first argument.
-                // Explicitly deny bypassing RolePolicy methods (viewAny, view, create, etc.)
-                $model = $arguments[0] ?? null;
-                if ($model === \Spatie\Permission\Models\Role::class || $model instanceof \Spatie\Permission\Models\Role) {
-                    return null;
-                }
-                
-                return true;
+        // Vercel terminates HTTPS at the reverse proxy.
+        // Force Laravel to generate HTTPS URLs in production.
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
+
+        Gate::before(function (User $user, string $ability, array $arguments = []) {
+            if (! $user->hasRole(UserRole::ADMIN->value)) {
+                return null;
             }
-            return null;
+
+            // Do not bypass authorization for role management.
+            if (str_ends_with($ability, '_role')) {
+                return null;
+            }
+
+            // Filament policies may pass the model class or instance
+            // as the first authorization argument.
+            $model = $arguments[0] ?? null;
+
+            if ($model === Role::class || $model instanceof Role) {
+                return null;
+            }
+
+            return true;
         });
     }
 }
