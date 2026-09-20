@@ -15,6 +15,10 @@ Route::get('/', function () {
 Route::view('/terms', 'terms')->name('terms');
 Route::view('/privacy', 'privacy')->name('privacy');
 
+Route::get('/health', function () {
+    return response()->json(['status' => 'ok']);
+})->name('health');
+
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CompetitionRegistrationController;
 use App\Http\Controllers\CompetitionController;
