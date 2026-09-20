@@ -31,25 +31,103 @@
           margin-bottom: 2rem;
       }
       .available-comp-card {
-          background: rgba(0,0,0,0.2);
-          border: 1px dashed var(--accent-blue);
+          background: var(--surface-elevated);
+          border: 1px solid var(--border-subtle);
           padding: 1.5rem;
-          border-radius: 8px;
-          text-align: center;
+          border-radius: 12px;
+          text-align: left;
           transition: 0.3s;
+          display: flex;
+          flex-direction: column;
       }
       .available-comp-card:hover {
-          background: rgba(63, 128, 239, 0.1);
+          border-color: rgba(63, 128, 239, 0.4);
+          background: rgba(31, 41, 55, 0.8);
       }
       .available-comp-card h4 {
           color: var(--text-primary);
-          font-family: var(--font-display);
-          margin-bottom: 0.5rem;
+          font-family: var(--font-body);
+          font-weight: 600;
+          font-size: 1.15rem;
+          margin-bottom: 0.25rem;
       }
-      .available-comp-card p {
+      .available-comp-card .desc {
           color: var(--text-secondary);
           font-size: 0.85rem;
-          margin-bottom: 1rem;
+          margin-bottom: 1.25rem;
+          line-height: 1.5;
+          flex-grow: 1;
+      }
+      .available-comp-card .meta {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0.75rem;
+          margin-bottom: 1.5rem;
+          font-size: 0.8rem;
+          color: var(--text-tertiary);
+      }
+      .available-comp-card .meta div {
+          display: flex;
+          align-items: center;
+          gap: 0.35rem;
+      }
+      .dash-action-row {
+          display: flex;
+          gap: 0.75rem;
+          align-items: center;
+          margin-top: auto;
+      }
+      .btn-dash-primary {
+          background: var(--accent-blue);
+          color: #fff;
+          font-family: var(--font-body);
+          font-size: 0.85rem;
+          font-weight: 500;
+          height: 42px;
+          padding: 0 1.25rem;
+          border-radius: 6px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          text-decoration: none;
+          transition: background 0.2s, transform 0.1s;
+          border: none;
+          flex: 1;
+          cursor: pointer;
+      }
+      .btn-dash-primary:hover:not(:disabled) {
+          background: #2a6ed8;
+          transform: translateY(-1px);
+      }
+      .btn-dash-secondary {
+          background: transparent;
+          color: var(--text-secondary);
+          font-family: var(--font-body);
+          font-size: 0.85rem;
+          font-weight: 500;
+          height: 42px;
+          padding: 0 1.25rem;
+          border-radius: 6px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          text-decoration: none;
+          transition: 0.2s;
+          border: 1px solid var(--border-default);
+      }
+      .btn-dash-secondary:hover {
+          border-color: var(--text-primary);
+          color: var(--text-primary);
+          background: rgba(255,255,255,0.03);
+      }
+      @media (max-width: 640px) {
+          .dash-action-row {
+              flex-direction: column;
+          }
+          .dash-action-row .btn-dash-secondary, 
+          .dash-action-row .btn-dash-primary {
+              width: 100%;
+          }
       }
       .registration-block {
           border: 1px solid var(--border-subtle);
@@ -129,8 +207,8 @@
           </div>
       @endif
 
-      @if($registrations->count() > 0)
-          @foreach($registrations as $registration)
+      @if($latestRegistrations->count() > 0)
+          @foreach($latestRegistrations as $registration)
           <div class="registration-block">
               <div class="reg-header">
                   <h2>{{ $registration->competition->name }}</h2>
@@ -171,9 +249,15 @@
                           </div>
 
                           @if($registration->verification_notes && ($registration->status === 'rejected' || $registration->status === 'revision_required'))
-                              <div class="verification-notes">
-                                  <strong>Moderator Note:</strong>
-                                  <p>{{ $registration->verification_notes }}</p>
+                              <div class="verification-notes" style="border-left: 3px solid #ff4d4d; background: rgba(255, 77, 77, 0.05); padding: 1rem; border-radius: 6px; margin-top: 1rem;">
+                                  <strong style="color: #ff4d4d; display: block; margin-bottom: 0.25rem;">Moderator Note:</strong>
+                                  <p style="color: var(--text-secondary); font-size: 0.9rem;">{{ $registration->verification_notes }}</p>
+                              </div>
+                          @endif
+
+                          @if($registration->status === 'rejected')
+                              <div style="margin-top: 1.5rem;">
+                                  <a href="{{ route('competition.register', $registration->competition->slug) }}" class="btn-primary" style="display: block; text-align: center; width: 100%;">Submit New Registration</a>
                               </div>
                           @endif
 
@@ -317,16 +401,78 @@
       </div>
       @endif
 
+      <!-- REGISTRATION HISTORY -->
+      @if($registrationHistory->count() > 0)
+      <div class="dash-card" style="margin-top: 2rem;">
+          <h3 style="color: var(--text-primary); font-family: var(--font-display); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+              <i class="fi fi-rr-time-past"></i> Registration History
+          </h3>
+          <div class="history-list">
+              @foreach($registrationHistory as $index => $historyReg)
+              <div class="history-item" style="border: 1px solid var(--border-subtle); background: rgba(0,0,0,0.2); border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem;">
+                      <strong style="color: var(--text-primary);">Attempt #{{ $registrationHistory->count() - $index }} - {{ $historyReg->competition->name }}</strong>
+                      <span class="dash-status-badge badge-{{ $historyReg->status }}" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;">
+                          {{ strtoupper(str_replace('_', ' ', $historyReg->status)) }}
+                      </span>
+                  </div>
+                  <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                      <strong>Submitted:</strong> {{ $historyReg->created_at->format('M j, Y H:i') }}
+                  </div>
+                  @if($historyReg->verification_notes)
+                  <div style="font-size: 0.85rem; color: var(--text-secondary); background: rgba(255,255,255,0.02); padding: 0.5rem; border-radius: 4px; border-left: 2px solid #ff4d4d;">
+                      <strong>Moderator Note:</strong><br>
+                      {{ $historyReg->verification_notes }}
+                  </div>
+                  @endif
+              </div>
+              @endforeach
+          </div>
+      </div>
+      @endif
+
       <!-- AVAILABLE COMPETITIONS -->
       <div id="available-competitions" style="margin-top: 2rem;">
           <h3 style="color: var(--text-primary); font-family: var(--font-display); margin-bottom: 1rem;">Available Competitions</h3>
           @if($availableCompetitions->count() > 0)
           <div class="comp-grid">
               @foreach($availableCompetitions as $comp)
+              @php
+                  $userReg = $latestRegistrations->where('competition_id', $comp->id)->first();
+              @endphp
               <div class="available-comp-card">
-                  <h4>{{ $comp->name }}</h4>
-                  <p>Type: {{ ucwords(str_replace('_', ' ', $comp->registration_type)) }}</p>
-                  <a href="{{ route('competition.register', $comp->slug) }}" class="btn-primary">Register Now</a>
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                      <h4>{{ $comp->name }}</h4>
+                      <span style="font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.5rem; border-radius: 4px; background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2);">
+                          {{ $comp->status === 'registration_open' ? 'OPEN' : 'CLOSED' }}
+                      </span>
+                  </div>
+                  
+                  @if($comp->description)
+                      <p class="desc">{{ Str::limit($comp->description, 80) }}</p>
+                  @else
+                      <div style="flex-grow: 1;"></div>
+                  @endif
+                  
+                  <div class="meta">
+                      <div><i class="fi fi-rr-users"></i> {{ ucwords(str_replace('_', ' ', $comp->registration_type)) }}</div>
+                      <div><i class="fi fi-rr-calendar"></i> {{ $comp->competition_start_at ? $comp->competition_start_at->format('M j, Y') : 'TBA' }}</div>
+                      <div><i class="fi fi-rr-marker"></i> {{ $comp->location ?? 'Online' }}</div>
+                      <div><i class="fi fi-rr-money-bill-wave"></i> {{ $comp->registration_fee > 0 ? 'IDR ' . number_format($comp->registration_fee,0,',','.') : 'Free' }}</div>
+                  </div>
+                  
+                  <div class="dash-action-row">
+                      <a href="{{ route('competition.show', $comp->slug) }}" class="btn-dash-secondary">View Details &nbsp;<i class="fi fi-rr-arrow-small-right"></i></a>
+                      @if(!$userReg)
+                          <a href="{{ route('competition.register', $comp->slug) }}" class="btn-dash-primary">Register Now</a>
+                      @elseif(in_array($userReg->status, ['rejected', 'cancelled']))
+                          <a href="{{ route('competition.register', $comp->slug) }}" class="btn-dash-primary">Register Again</a>
+                      @elseif(in_array($userReg->status, ['approved', 'verified']))
+                          <button disabled class="btn-dash-primary disabled-btn" style="opacity: 0.5;">Registered</button>
+                      @else
+                          <button disabled class="btn-dash-primary disabled-btn" style="opacity: 0.5;">Under Review</button>
+                      @endif
+                  </div>
               </div>
               @endforeach
           </div>

@@ -29,11 +29,20 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         $user = auth()->user();
-        if ($user->hasRole(['super_admin', 'moderator', 'judge'])) {
-            return redirect()->intended('/admin');
+
+        // Centralized role-based redirect
+        if ($user->isBackofficeUser()) {
+            // Honor intended URL only if it targets an admin panel route
+            $intended = session()->get('url.intended');
+            if ($intended && str_contains($intended, '/admin')) {
+                return redirect()->intended('/admin');
+            }
+            // Clear any non-admin intended URL (e.g. /dashboard) to prevent backoffice users from reaching participant dashboard
+            session()->forget('url.intended');
+            return redirect('/admin');
         }
 
-        return redirect('/dashboard');
+        return redirect()->intended('/dashboard');
     }
 
     /**

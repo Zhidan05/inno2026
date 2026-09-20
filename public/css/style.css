@@ -682,9 +682,10 @@ body {
    ===================================================== */
 .competitions {
   position: relative;
-  padding: 4rem 1.5rem;
+  padding: 4rem 1rem;
   overflow: hidden;
   background: var(--bg-secondary);
+  scroll-margin-top: 70px;
 }
 
 /* Top gradient line */
@@ -712,15 +713,18 @@ body {
   background-size: 40px 40px, 40px 40px, 100% 100%;
 }
 
+/* --- Competitions Grid (replaces timeline) --- */
 .timeline-container {
   position: relative;
-  max-width: 900px;
+  max-width: 1160px;
   margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 3rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+  padding: 0 0.5rem;
 }
 
+/* Hide timeline SVG — no longer used */
 .timeline-path-svg {
   display: none;
 }
@@ -730,18 +734,20 @@ body {
   z-index: 1;
   display: flex;
   width: 100%;
-  align-self: center;
+  max-width: 420px;
+  margin-inline: auto;
 }
 
-.comp-card-wrap[data-side="left"] {
-  margin-left: 0;
-}
-
+/* Reset data-side positioning — grid handles layout now */
+.comp-card-wrap[data-side="left"],
 .comp-card-wrap[data-side="right"] {
-  margin-right: 0;
+  margin-left: auto;
+  margin-right: auto;
+  align-self: stretch;
 }
 
 .comp-card {
+  width: 100%;
   background: var(--surface);
   border: 1px solid var(--border-default);
   border-radius: 18px;
@@ -750,6 +756,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  min-height: 220px;
   transition: transform 0.35s, box-shadow 0.35s, border-color 0.35s;
   cursor: default;
 }
@@ -764,6 +771,13 @@ body {
   font-size: 2.4rem;
   line-height: 1;
   filter: drop-shadow(0 0 10px var(--glow-gold));
+  flex-shrink: 0;
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 }
 
 .card-body h3 {
@@ -772,6 +786,8 @@ body {
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 0.5rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .card-body p {
@@ -779,11 +795,13 @@ body {
   color: var(--text-secondary);
   font-weight: 300;
   line-height: 1.6;
+  flex-grow: 1;
 }
 
 .btn-card {
   display: inline-block;
-  margin-top: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.75rem;
   font-family: var(--font-head);
   font-size: 0.72rem;
   font-weight: 700;
@@ -793,6 +811,7 @@ body {
   border-bottom: 1px solid rgba(255, 194, 9, 0.35);
   padding-bottom: 2px;
   transition: color 0.2s, border-color 0.2s;
+  align-self: flex-start;
 }
 
 .btn-card:hover {
@@ -1761,8 +1780,15 @@ body {
   .span2 { grid-column: span 2; }
   .logo-grid { grid-template-columns: repeat(4, 1fr); }
 
-  /* Timeline cards */
-  .comp-card-wrap { width: 80%; }
+  /* Competitions grid: 2 columns at tablet */
+  .timeline-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    padding: 0;
+  }
+  .comp-card-wrap {
+    max-width: none;
+  }
 }
 
 /* ── MD: 768px — Tablet landscape ── */
@@ -1862,20 +1888,10 @@ body {
   /* About Grid: 3-column */
   .about-grid { grid-template-columns: repeat(3, 1fr); }
 
-  /* Timeline Desktop */
-  .timeline-path-svg {
-    display: block;
-    position: absolute;
-    top: 0; left: 50%;
-    transform: translateX(-50%);
-    width: 200px;
-    height: 100%;
-    pointer-events: none;
-    z-index: 0;
+  /* Competitions grid: keep 2 columns at 901px */
+  .timeline-container {
+    gap: 1.75rem;
   }
-  .comp-card-wrap { width: 46%; }
-  .comp-card-wrap[data-side="left"] { align-self: flex-start; }
-  .comp-card-wrap[data-side="right"] { align-self: flex-end; }
 
   /* Layout Padding Desktop */
   .competitions { padding: 7rem 2rem; }
@@ -1885,6 +1901,12 @@ body {
 
 /* ── XL: 1024px — Full desktop decorative enhancement ── */
 @media (min-width: 1024px) {
+  /* Competitions grid: 3 columns at full desktop */
+  .timeline-container {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+
   /* Hero: full desktop orbs */
   .orb { opacity: 0.45; filter: blur(80px); }
   .orb1 { width: 500px; height: 500px; top: -120px; left: -120px; }
@@ -1975,4 +1997,17 @@ body {
     border-left-color: transparent;
     border-top-color: transparent;
   }
+}
+
+/* =====================================================
+   DASHBOARD UTILITIES
+   ===================================================== */
+.comp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.disabled-btn {
+  pointer-events: none;
 }

@@ -11,6 +11,12 @@ class StatsOverview extends BaseWidget
 {
     protected static ?int $sort = 1;
 
+    public static function canView(): bool
+    {
+        $user = auth()->user();
+        return $user && $user->hasRole([\App\Enums\UserRole::ADMIN->value, \App\Enums\UserRole::MODERATOR->value]);
+    }
+
     protected function getStats(): array
     {
         return [

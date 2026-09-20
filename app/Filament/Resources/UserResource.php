@@ -33,19 +33,42 @@ class UserResource extends Resource
                     ->email()
                     ->required()
                     ->maxLength(255),
-                Forms\Components\Select::make('roles')
-                    ->relationship('roles', 'name')
-                    ->multiple()
-                    ->preload()
-                    ->searchable()
-                    ->visible(fn () => auth()->user()?->hasRole('super_admin')),
+                Forms\Components\Select::make('role')
+                    ->label('Role')
+                    ->options([
+                        \App\Enums\UserRole::ADMIN->value => \App\Enums\UserRole::ADMIN->label(),
+                        \App\Enums\UserRole::MODERATOR->value => \App\Enums\UserRole::MODERATOR->label(),
+                        \App\Enums\UserRole::JUDGE->value => \App\Enums\UserRole::JUDGE->label(),
+                        \App\Enums\UserRole::PARTICIPANT->value => \App\Enums\UserRole::PARTICIPANT->label(),
+                    ])
+                    ->afterStateHydrated(function (Forms\Components\Select $component, ?User $record) {
+                        if ($record && $record->exists) {
+                            $component->state($record->roles()->first()?->name);
+                        }
+                    })
+                    ->saveRelationshipsUsing(function (User $record, $state) {
+                        $currentUser = auth()->user();
+                        if ($currentUser && $currentUser->hasRole(\App\Enums\UserRole::ADMIN->value)) {
+                            if ($record->hasRole(\App\Enums\UserRole::ADMIN->value) && $state !== \App\Enums\UserRole::ADMIN->value) {
+                                if (\App\Models\User::role(\App\Enums\UserRole::ADMIN->value)->count() <= 1) {
+                                    throw \Illuminate\Validation\ValidationException::withMessages(['role' => 'At least one Admin account must remain active.']);
+                                }
+                            }
+                            $record->syncRoles([$state]);
+                        } else if ($currentUser && $currentUser->hasRole(\App\Enums\UserRole::MODERATOR->value)) {
+                            $record->syncRoles([\App\Enums\UserRole::PARTICIPANT->value]);
+                        }
+                    })
+                    ->dehydrated(false)
+                    ->disabled(fn () => !auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value))
+                    ->default(fn () => auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value) ? null : \App\Enums\UserRole::PARTICIPANT->value)
+                    ->required(),
                 Forms\Components\TextInput::make('password')
                     ->password()
                     ->dehydrateStateUsing(fn ($state) => Hash::make($state))
                     ->dehydrated(fn ($state) => filled($state))
                     ->required(fn (string $context): bool => $context === 'create')
-                    ->label('Reset Password')
-                    ->visible(fn () => auth()->user()?->hasRole('super_admin')),
+                    ->label('Password'),
             ]);
     }
 
@@ -64,15 +87,17 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('roles.name')
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'super_admin' => 'Super Admin',
-                        'moderator' => 'Moderator',
-                        'participant' => 'Participant',
+                        \App\Enums\UserRole::ADMIN->value => \App\Enums\UserRole::ADMIN->label(),
+                        \App\Enums\UserRole::MODERATOR->value => \App\Enums\UserRole::MODERATOR->label(),
+                        \App\Enums\UserRole::JUDGE->value => \App\Enums\UserRole::JUDGE->label(),
+                        \App\Enums\UserRole::PARTICIPANT->value => \App\Enums\UserRole::PARTICIPANT->label(),
                         default => ucfirst($state),
                     })
                     ->colors([
-                        'danger' => 'super_admin',
-                        'warning' => 'moderator',
-                        'success' => 'participant',
+                        'warning' => \App\Enums\UserRole::ADMIN->value,
+                        'info' => \App\Enums\UserRole::MODERATOR->value,
+                        'primary' => \App\Enums\UserRole::JUDGE->value,
+                        'gray' => \App\Enums\UserRole::PARTICIPANT->value,
                     ]),
                 Tables\Columns\TextColumn::make('registrations_count')
                     ->counts('registrations')
@@ -90,10 +115,8 @@ class UserResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make()
-                    ->visible(fn () => auth()->user()?->hasRole('super_admin')),
-                Tables\Actions\DeleteAction::make()
-                    ->visible(fn () => auth()->user()?->hasRole('super_admin')),
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -117,9 +140,9 @@ class UserResource extends Resource
                                 fclose($handle);
                             }, 'users_export.csv');
                         })
-                        ->visible(fn () => auth()->user()?->hasRole('super_admin')),
+                        ->visible(fn () => auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
                     Tables\Actions\DeleteBulkAction::make()
-                        ->visible(fn () => auth()->user()?->hasRole('super_admin')),
+                        ->visible(fn () => auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
                 ]),
             ]);
     }
@@ -135,15 +158,17 @@ class UserResource extends Resource
                         Infolists\Components\TextEntry::make('roles.name')
                             ->badge()
                             ->formatStateUsing(fn (string $state): string => match ($state) {
-                                'super_admin' => 'Super Admin',
-                                'moderator' => 'Moderator',
-                                'participant' => 'Participant',
+                                \App\Enums\UserRole::ADMIN->value => \App\Enums\UserRole::ADMIN->label(),
+                                \App\Enums\UserRole::MODERATOR->value => \App\Enums\UserRole::MODERATOR->label(),
+                                \App\Enums\UserRole::JUDGE->value => \App\Enums\UserRole::JUDGE->label(),
+                                \App\Enums\UserRole::PARTICIPANT->value => \App\Enums\UserRole::PARTICIPANT->label(),
                                 default => ucfirst($state),
                             })
                             ->colors([
-                                'danger' => 'super_admin',
-                                'warning' => 'moderator',
-                                'success' => 'participant',
+                                'warning' => \App\Enums\UserRole::ADMIN->value,
+                                'info' => \App\Enums\UserRole::MODERATOR->value,
+                                'primary' => \App\Enums\UserRole::JUDGE->value,
+                                'gray' => \App\Enums\UserRole::PARTICIPANT->value,
                             ]),
                         Infolists\Components\TextEntry::make('created_at')
                             ->dateTime('d M Y, H:i'),
@@ -189,6 +214,6 @@ class UserResource extends Resource
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->hasRole('super_admin') ?? false;
+        return auth()->user()?->hasRole([\App\Enums\UserRole::ADMIN->value, \App\Enums\UserRole::MODERATOR->value]) ?? false;
     }
 }

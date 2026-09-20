@@ -12,6 +12,7 @@ use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
+use App\Enums\UserRole;
 
 #[Fillable(['name', 'email', 'phone', 'institution', 'password'])]
 #[Hidden(['password', 'remember_token'])]
@@ -43,13 +44,36 @@ class User extends Authenticatable implements FilamentUser
         return $this->belongsToMany(Competition::class, 'competition_judge');
     }
 
+    public function defaultRedirectUrl(): string
+    {
+        if ($this->isBackofficeUser()) {
+            return '/admin';
+        }
+
+        return '/dashboard';
+    }
+
+    public function isBackofficeUser(): bool
+    {
+        return $this->hasRole([
+            UserRole::ADMIN->value,
+            UserRole::MODERATOR->value,
+            UserRole::JUDGE->value,
+        ]);
+    }
+
+    public function isParticipant(): bool
+    {
+        return $this->hasRole(UserRole::PARTICIPANT->value);
+    }
+
     public function canAccessPanel(Panel $panel): bool
     {
         if ($panel->getId() === 'participant') {
-            return $this->hasRole('participant');
+            return $this->hasRole(UserRole::PARTICIPANT->value);
         }
 
-        // Only super_admin, moderator, and judge can access the admin Filament panel.
-        return $this->hasRole(['super_admin', 'moderator', 'judge']);
+        // Only admin, moderator, and judge can access the admin Filament panel.
+        return $this->isBackofficeUser();
     }
 }

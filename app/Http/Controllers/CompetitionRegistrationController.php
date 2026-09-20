@@ -14,6 +14,11 @@ class CompetitionRegistrationController extends Controller
 {
     public function create(Competition $competition)
     {
+        // Check if inactive
+        if ($competition->status === 'inactive') {
+            return redirect()->route('dashboard')->with('error', 'This competition is currently inactive and no longer accepts registrations.');
+        }
+
         // Check if registration is open
         if ($competition->status !== 'registration_open') {
             return redirect()->route('dashboard')->with('error', 'Registration for this competition is currently closed.');
@@ -24,9 +29,12 @@ class CompetitionRegistrationController extends Controller
             return redirect()->route('dashboard')->with('error', 'The registration deadline has passed.');
         }
 
-        // Check if already registered
-        if (Registration::where('user_id', Auth::id())->where('competition_id', $competition->id)->exists()) {
-            return redirect()->route('dashboard')->with('error', 'You are already registered for this competition.');
+        // Check if already registered with an active status
+        if (Registration::where('user_id', Auth::id())
+            ->where('competition_id', $competition->id)
+            ->whereNotIn('status', ['rejected', 'cancelled'])
+            ->exists()) {
+            return redirect()->route('dashboard')->with('error', 'You already have an active registration for this competition.');
         }
 
         return view('register-competition', compact('competition'));
@@ -34,13 +42,21 @@ class CompetitionRegistrationController extends Controller
 
     public function store(Request $request, Competition $competition)
     {
+        // Check if inactive
+        if ($competition->status === 'inactive') {
+            return back()->withErrors(['competition' => 'This competition is currently inactive and no longer accepts registrations.']);
+        }
+
         // Check if registration is open
         if ($competition->status !== 'registration_open') {
             return back()->withErrors(['competition' => 'Registration is closed.']);
         }
 
-        if (Registration::where('user_id', Auth::id())->where('competition_id', $competition->id)->exists()) {
-            return back()->withErrors(['competition' => 'You are already registered.']);
+        if (Registration::where('user_id', Auth::id())
+            ->where('competition_id', $competition->id)
+            ->whereNotIn('status', ['rejected', 'cancelled'])
+            ->exists()) {
+            return back()->withErrors(['competition' => 'You already have an active registration for this competition.']);
         }
 
         // Base Validation

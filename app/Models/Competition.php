@@ -33,6 +33,17 @@ class Competition extends Model
         'competition_end_at' => 'datetime',
     ];
 
+    protected static function booted()
+    {
+        static::saving(function (Competition $competition) {
+            if ($competition->isDirty('status') && $competition->status === 'registration_open') {
+                if (empty($competition->registration_open_at)) {
+                    $competition->registration_open_at = now();
+                }
+            }
+        });
+    }
+
     public function registrations(): HasMany
     {
         return $this->hasMany(Registration::class);

@@ -14,7 +14,7 @@ class ViewParticipant extends ViewRecord
     {
         return [
             Actions\EditAction::make()
-                ->visible(fn () => auth()->user()?->hasRole('super_admin')),
+                ->visible(fn () => auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
             Actions\Action::make('view_payment')
                 ->label('View Payment Proof')
                 ->icon('heroicon-o-document-text')
@@ -26,7 +26,7 @@ class ViewParticipant extends ViewRecord
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
                 ->requiresConfirmation()
-                ->visible(fn ($record) => in_array($record->status, ['pending', 'revision_required']) && auth()->user()?->hasRole(['super_admin', 'moderator']))
+                ->visible(fn ($record) => in_array($record->status, ['pending', 'revision_required']) && auth()->user()?->hasRole([\App\Enums\UserRole::ADMIN->value, \App\Enums\UserRole::MODERATOR->value]))
                 ->action(function ($record) {
                     $record->update([
                         'status' => 'approved',
@@ -48,7 +48,7 @@ class ViewParticipant extends ViewRecord
                 ->form([
                     \Filament\Forms\Components\Textarea::make('verification_notes')->required()->label('Revision Notes'),
                 ])
-                ->visible(fn ($record) => $record->status === 'pending' && auth()->user()?->hasRole(['super_admin', 'moderator']))
+                ->visible(fn ($record) => $record->status === 'pending' && auth()->user()?->hasRole([\App\Enums\UserRole::ADMIN->value, \App\Enums\UserRole::MODERATOR->value]))
                 ->action(function ($record, array $data) {
                     $record->update([
                         'status' => 'revision_required',
@@ -65,7 +65,7 @@ class ViewParticipant extends ViewRecord
                 ->form([
                     \Filament\Forms\Components\Textarea::make('verification_notes')->required()->label('Rejection Reason'),
                 ])
-                ->visible(fn ($record) => in_array($record->status, ['pending', 'revision_required']) && auth()->user()?->hasRole(['super_admin', 'moderator']))
+                ->visible(fn ($record) => in_array($record->status, ['pending', 'revision_required']) && auth()->user()?->hasRole([\App\Enums\UserRole::ADMIN->value, \App\Enums\UserRole::MODERATOR->value]))
                 ->action(function ($record, array $data) {
                     $record->update([
                         'status' => 'rejected',

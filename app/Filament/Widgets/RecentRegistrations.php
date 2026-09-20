@@ -12,6 +12,12 @@ class RecentRegistrations extends BaseWidget
     protected int | string | array $columnSpan = 'full';
     protected static ?int $sort = 2;
 
+    public static function canView(): bool
+    {
+        $user = auth()->user();
+        return $user && $user->hasRole([\App\Enums\UserRole::ADMIN->value, \App\Enums\UserRole::MODERATOR->value]);
+    }
+
     public function table(Table $table): Table
     {
         return $table

@@ -23,6 +23,9 @@ class RegistrationPolicy
      */
     public function view(User $user, Registration $registration): bool
     {
+        if ($user->hasRole(\App\Enums\UserRole::JUDGE->value) && !$user->hasRole([\App\Enums\UserRole::ADMIN->value, \App\Enums\UserRole::MODERATOR->value])) {
+            return $user->can('view_registration') && $registration->competition->judges()->where('users.id', $user->id)->exists();
+        }
         return $user->can('view_registration');
     }
 
@@ -39,6 +42,9 @@ class RegistrationPolicy
      */
     public function update(User $user, Registration $registration): bool
     {
+        if ($user->hasRole(\App\Enums\UserRole::JUDGE->value) && !$user->hasRole([\App\Enums\UserRole::ADMIN->value, \App\Enums\UserRole::MODERATOR->value])) {
+            return $user->can('update_registration') && $registration->competition->judges()->where('users.id', $user->id)->exists();
+        }
         return $user->can('update_registration');
     }
 

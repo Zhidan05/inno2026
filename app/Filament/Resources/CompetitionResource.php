@@ -3,19 +3,109 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CompetitionResource\Pages;
+use App\Filament\Resources\CompetitionResource\RelationManagers;
 use App\Models\Competition;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use App\Enums\UserRole;
 
 class CompetitionResource extends Resource
 {
     protected static ?string $model = Competition::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-trophy';
-    protected static ?string $navigationGroup = 'MANAGEMENT';
+
+    public static function getNavigationLabel(): string
+    {
+        $user = auth()->user();
+        if ($user && $user->hasRole(UserRole::JUDGE->value) && !$user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
+            return 'Assigned Competitions';
+        }
+
+        return 'Competitions';
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        $user = auth()->user();
+        if ($user && $user->hasRole(UserRole::JUDGE->value) && !$user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
+            return 'JUDGING';
+        }
+
+        return 'MANAGEMENT';
+    }
+
+    public static function getNavigationSort(): ?int
+    {
+        return 1;
+    }
+
+    public static function canViewAny(): bool
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return false;
+        }
+
+        if ($user->hasRole(UserRole::JUDGE->value)) {
+            return true;
+        }
+
+        return static::can('viewAny');
+    }
+
+    public static function canView(Model $record): bool
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return false;
+        }
+
+        if ($user->hasRole(UserRole::JUDGE->value) && !$user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
+            return $record->judges()->where('users.id', $user->id)->exists();
+        }
+
+        return static::can('view', $record);
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return false;
+        }
+
+        if ($user->hasRole(UserRole::JUDGE->value) && !$user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
+            return false;
+        }
+
+        return static::can('update', $record);
+    }
+
+    public static function canCreate(): bool
+    {
+        $user = auth()->user();
+        if ($user && $user->hasRole(UserRole::JUDGE->value) && !$user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
+            return false;
+        }
+
+        return static::can('create');
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        $user = auth()->user();
+        if ($user && $user->hasRole(UserRole::JUDGE->value) && !$user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
+            return false;
+        }
+
+        return static::can('delete', $record);
+    }
 
     public static function form(Form $form): Form
     {
@@ -72,6 +162,7 @@ class CompetitionResource extends Resource
                         'ongoing' => 'Ongoing',
                         'completed' => 'Completed',
                         'results_published' => 'Results Published',
+                        'inactive' => 'Inactive',
                     ])
                     ->required()
                     ->default('draft'),
@@ -79,12 +170,50 @@ class CompetitionResource extends Resource
                 Forms\Components\DateTimePicker::make('registration_close_at'),
                 Forms\Components\DateTimePicker::make('competition_start_at'),
                 Forms\Components\DateTimePicker::make('competition_end_at'),
-                Forms\Components\Select::make('judges')
+                Forms\Components\Select::make('judge_ids')
+                    ->label('Judges')
                     ->multiple()
-                    ->relationship('judges', 'name')
+                    ->options(function () {
+                        $users = \App\Models\User::with('roles')
+                            ->whereHas('roles', fn($q) => $q->whereIn('name', [UserRole::JUDGE->value, UserRole::MODERATOR->value, UserRole::ADMIN->value]))
+                            ->get();
+                            
+                        $judges = [];
+                        $moderators = [];
+                        $admins = [];
+                        
+                        foreach ($users as $user) {
+                            $roleNames = $user->roles->pluck('name')->toArray();
+                            $label = $user->name . ' — ' . collect($roleNames)->map(fn($r) => ucwords(str_replace('_', ' ', $r)))->implode(', ');
+                            
+                            if (in_array('judge', $roleNames)) {
+                                $judges[$user->id] = $label;
+                            } elseif (in_array('moderator', $roleNames)) {
+                                $moderators[$user->id] = $label;
+                            } else {
+                                $admins[$user->id] = $label;
+                            }
+                        }
+                        
+                        $options = [];
+                        if (!empty($judges)) { asort($judges); $options['Judges'] = $judges; }
+                        if (!empty($moderators)) { asort($moderators); $options['Moderators'] = $moderators; }
+                        if (!empty($admins)) { asort($admins); $options['Super Admins'] = $admins; }
+                        
+                        return $options;
+                    })
+                    ->afterStateHydrated(function (Forms\Components\Select $component, ?Competition $record) {
+                        if ($record && $record->exists) {
+                            $component->state($record->judges()->pluck('users.id')->toArray());
+                        }
+                    })
+                    ->saveRelationshipsUsing(function (Competition $record, $state) {
+                        $record->judges()->sync($state ?? []);
+                    })
+                    ->dehydrated(false)
                     ->preload()
                     ->columnSpanFull()
-                    ->visible(fn () => auth()->user()?->hasRole('super_admin')),
+                    ->visible(fn () => auth()->user()?->hasRole(UserRole::ADMIN->value)),
             ]);
     }
 
@@ -115,12 +244,11 @@ class CompetitionResource extends Resource
                     ->badge()
                     ->colors([
                         'secondary' => 'draft',
-                        'success' => 'registration_open',
+                        'success' => fn ($state) => in_array($state, ['registration_open', 'results_published']),
                         'danger' => 'registration_closed',
                         'warning' => 'upcoming',
                         'primary' => 'ongoing',
-                        'gray' => 'completed',
-                        'success' => 'results_published',
+                        'gray' => fn ($state) => in_array($state, ['completed', 'inactive']),
                     ]),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
@@ -131,19 +259,23 @@ class CompetitionResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make()->label('Detail')->icon('heroicon-m-eye')->color('secondary'),
+                Tables\Actions\EditAction::make()
+                    ->visible(fn () => !auth()->user()?->hasRole(UserRole::JUDGE->value) || auth()->user()?->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                ])->visible(fn () => !auth()->user()?->hasRole(UserRole::JUDGE->value) || auth()->user()?->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])),
             ]);
     }
 
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\RegistrationsRelationManager::class,
+            RelationManagers\JudgesRelationManager::class,
+            RelationManagers\WinnersRelationManager::class,
         ];
     }
 
@@ -153,15 +285,16 @@ class CompetitionResource extends Resource
             'index' => Pages\ListCompetitions::route('/'),
             'create' => Pages\CreateCompetition::route('/create'),
             'edit' => Pages\EditCompetition::route('/{record}/edit'),
+            'view' => Pages\ViewCompetition::route('/{record}'),
         ];
     }
 
-    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
+        
         $user = auth()->user();
-
-        if ($user && $user->hasRole('judge')) {
+        if ($user && $user->hasRole(UserRole::JUDGE->value) && !$user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
             $query->whereHas('judges', function ($q) use ($user) {
                 $q->where('users.id', $user->id);
             });

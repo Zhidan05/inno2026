@@ -23,6 +23,12 @@ class ParticipantResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-users';
     protected static ?string $navigationLabel = 'Participants';
     protected static ?string $navigationGroup = 'MANAGEMENT';
+    
+    public static function canAccess(): bool
+    {
+        $user = auth()->user();
+        return $user && $user->hasRole([\App\Enums\UserRole::ADMIN->value, \App\Enums\UserRole::MODERATOR->value]);
+    }
     protected static ?int $navigationSort = 2;
 
     public static function getEloquentQuery(): Builder
@@ -42,22 +48,22 @@ class ParticipantResource extends Resource
                 Forms\Components\Select::make('competition_id')
                     ->relationship('competition', 'name')
                     ->required()
-                    ->disabled(fn () => !auth()->user()?->hasRole('super_admin')),
+                    ->disabled(fn () => !auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
                 Forms\Components\Select::make('user_id')
                     ->relationship('user', 'name')
                     ->label('Account Owner')
                     ->required()
-                    ->disabled(fn () => !auth()->user()?->hasRole('super_admin')),
+                    ->disabled(fn () => !auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
                 Forms\Components\Select::make('registration_mode')
                     ->options([
                         'solo' => 'Solo',
                         'team' => 'Team',
                     ])
                     ->required()
-                    ->disabled(fn () => !auth()->user()?->hasRole('super_admin')),
+                    ->disabled(fn () => !auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
                 Forms\Components\TextInput::make('team_name')
                     ->maxLength(255)
-                    ->disabled(fn () => !auth()->user()?->hasRole('super_admin')),
+                    ->disabled(fn () => !auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
                 Forms\Components\Select::make('status')
                     ->options([
                         'pending' => 'Pending Review',
@@ -66,15 +72,15 @@ class ParticipantResource extends Resource
                         'revision_required' => 'Revision Required',
                     ])
                     ->required()
-                    ->disabled(fn () => !auth()->user()?->hasRole('super_admin')),
+                    ->disabled(fn () => !auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
                 Forms\Components\TextInput::make('grade')
                     ->numeric()
                     ->step('0.01')
                     ->label('Score')
-                    ->visible(fn () => auth()->user()?->hasRole('super_admin')),
+                    ->visible(fn () => auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
                 Forms\Components\Textarea::make('verification_notes')
                     ->label('Verification Notes')
-                    ->disabled(fn () => !auth()->user()?->hasRole('super_admin')),
+                    ->disabled(fn () => !auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
             ]);
     }
 
@@ -158,12 +164,12 @@ class ParticipantResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make()
-                    ->visible(fn () => auth()->user()?->hasRole('super_admin')),
+                    ->visible(fn () => auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->visible(fn () => auth()->user()?->hasRole('super_admin')),
+                        ->visible(fn () => auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
                 ]),
             ]);
     }

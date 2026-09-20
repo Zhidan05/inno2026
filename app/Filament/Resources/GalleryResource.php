@@ -17,6 +17,12 @@ class GalleryResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-photo';
     protected static ?string $navigationGroup = 'SYSTEM';
 
+    public static function canAccess(): bool
+    {
+        $user = auth()->user();
+        return $user && $user->hasRole(\App\Enums\UserRole::ADMIN->value);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

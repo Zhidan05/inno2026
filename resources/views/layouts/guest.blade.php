@@ -47,13 +47,15 @@
             </div>
         </nav>
 
-        <div class="min-h-screen flex flex-col items-center pt-24 pb-12 relative overflow-x-hidden">
-            <!-- Glow Effect -->
-            <div class="fixed top-1/4 left-1/4 w-96 h-96 bg-[#303AE4] rounded-full mix-blend-screen filter blur-[100px] opacity-30 pointer-events-none z-0"></div>
-            <div class="fixed bottom-1/4 right-1/4 w-96 h-96 bg-[#FFC209] rounded-full mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none z-0"></div>
-            
-            <div class="relative z-10 w-full sm:max-w-md px-4 sm:px-0 mt-4 sm:mt-10 flex-grow flex flex-col justify-center">
-                <div class="w-full px-6 py-8 bg-[#111827] shadow-[0_0_30px_rgba(255,194,9,0.15)] border border-[#303AE4]/30 rounded-2xl relative z-10">
+        {{-- Auth page wrapper — clears the fixed navbar (70px) with safe spacing --}}
+        <div class="relative overflow-x-hidden flex flex-col items-center justify-center px-4 sm:px-6"
+             style="min-height: 100vh; padding-top: 102px; padding-bottom: 48px;">
+            {{-- Glow effects (absolute so they don't cause overflow) --}}
+            <div class="absolute top-1/4 left-0 w-80 h-80 sm:w-96 sm:h-96 bg-[#303AE4] rounded-full mix-blend-screen blur-[100px] opacity-30 pointer-events-none z-0" style="max-width: 100%;"></div>
+            <div class="absolute bottom-1/4 right-0 w-80 h-80 sm:w-96 sm:h-96 bg-[#FFC209] rounded-full mix-blend-screen blur-[100px] opacity-20 pointer-events-none z-0" style="max-width: 100%;"></div>
+
+            <div class="relative z-10 w-full sm:max-w-md">
+                <div class="w-full px-6 py-8 bg-[#111827] shadow-[0_0_30px_rgba(255,194,9,0.15)] border border-[#303AE4]/30 rounded-2xl">
                     {{ $slot }}
                 </div>
             </div>

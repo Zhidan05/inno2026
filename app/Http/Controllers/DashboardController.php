@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Registration;
 use App\Models\Competition;
 use App\Models\Announcement;
+use App\Enums\UserRole;
 
 class DashboardController extends Controller
 {
@@ -14,29 +15,37 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         
-        // Redirect users with admin panel access directly to the admin panel
-        if ($user->hasRole(['super_admin', 'moderator', 'judge'])) {
+        // Strictly protect participant dashboard: redirect any non-participant or backoffice user
+        if (!$user || $user->isBackofficeUser() || !$user->isParticipant()) {
             return redirect('/admin');
         }
         
-        // Fetch ALL registrations for the user
-        $registrations = Registration::with(['competition', 'ticket', 'members'])
+        // Fetch ALL registrations for the user ordered by created_at DESC
+        $allRegistrations = Registration::with(['competition', 'ticket', 'members'])
             ->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
             ->get();
             
-        // Fetch open competitions that the user hasn't registered for
-        $registeredCompIds = $registrations->pluck('competition_id')->toArray();
-        $availableCompetitions = Competition::where('status', 'registration_open')
-            ->whereNotIn('id', $registeredCompIds)
-            ->get();
+        $latestRegistrations = collect();
+        $registrationHistory = collect();
+        
+        foreach ($allRegistrations->groupBy('competition_id') as $compId => $regs) {
+            $latestRegistrations->push($regs->first());
+            if ($regs->count() > 1) {
+                $registrationHistory = $registrationHistory->merge($regs->slice(1));
+            }
+        }
+            
+        $registeredCompIds = $latestRegistrations->pluck('competition_id')->toArray();
+        
+        // Fetch ALL open competitions (the view will adapt the buttons based on registration state)
+        $availableCompetitions = Competition::where('status', 'registration_open')->get();
         
         // Fetch relevant announcements
-        // If user has registrations, fetch global + specific
-        // If none, fetch only global
         $announcementQuery = Announcement::whereNotNull('published_at')
             ->where('published_at', '<=', now());
 
-        if ($registrations->count() > 0) {
+        if ($latestRegistrations->count() > 0) {
             $announcementQuery->where(function($q) use ($registeredCompIds) {
                 $q->whereNull('competition_id')
                   ->orWhereIn('competition_id', $registeredCompIds);
@@ -47,6 +56,6 @@ class DashboardController extends Controller
 
         $announcements = $announcementQuery->orderBy('published_at', 'desc')->take(5)->get();
 
-        return view('dashboard', compact('registrations', 'availableCompetitions', 'announcements'));
+        return view('dashboard', compact('latestRegistrations', 'registrationHistory', 'availableCompetitions', 'announcements'));
     }
 }

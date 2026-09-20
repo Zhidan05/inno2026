@@ -33,7 +33,7 @@ class ListUsers extends ListRecords
                         fclose($handle);
                     }, 'users_export.csv');
                 })
-                ->visible(fn () => auth()->user()?->hasRole('super_admin')),
+                ->visible(fn () => auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
             Actions\CreateAction::make(),
         ];
     }
