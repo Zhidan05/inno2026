@@ -71,9 +71,9 @@
         <span class="title-line1">InnoElectrica</span><span class="title-line2">EXPO</span>
         <span class="title-year">2026</span>
       </h1>
-      <p class="hero-tagline">Where Innovation Ignites &amp; the Future is Engineered</p>
+      <p class="hero-tagline">Next Gen Innovators: Where Science Meets the Future</p>
       <p class="hero-sub">Push the limits of smart systems, electrical innovation, and engineering excellence. The
-        premier university technology competition of 2026.</p>
+        technology competition of 2026.</p>
       <div class="hero-cta">
         <a href="#competitions" class="btn-primary">Explore Competitions</a>
         @auth
