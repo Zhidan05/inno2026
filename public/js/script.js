@@ -136,22 +136,27 @@
    3. COUNTDOWN TIMER
    ===================================================== */
 (function initCountdown() {
-  // Event date: August 15, 2026
-  const EVENT_DATE = new Date('2026-08-15T08:00:00');
+  const targetStr = window.__COUNTDOWN_TARGET;
+  if (!targetStr) return;
+
+  const target = new Date(targetStr).getTime();
+  if (isNaN(target)) return;
 
   const dEl = document.getElementById('cd-days');
   const hEl = document.getElementById('cd-hours');
   const mEl = document.getElementById('cd-mins');
   const sEl = document.getElementById('cd-secs');
 
+  if (!dEl || !hEl || !mEl || !sEl) return;
+
   function pad(n) { return String(n).padStart(2, '0'); }
 
   function tick() {
-    const now = new Date();
-    const diff = EVENT_DATE - now;
+    const diff = target - Date.now();
 
     if (diff <= 0) {
       dEl.textContent = hEl.textContent = mEl.textContent = sEl.textContent = '00';
+      clearInterval(timer);
       return;
     }
 
@@ -167,7 +172,7 @@
   }
 
   tick();
-  setInterval(tick, 1000);
+  const timer = setInterval(tick, 1000);
 })();
 
 

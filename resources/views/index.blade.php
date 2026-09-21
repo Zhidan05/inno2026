@@ -82,8 +82,9 @@
             <a href="{{ route('register') }}" class="btn-ghost">Register Now</a>
         @endauth
       </div>
-      <div class="countdown-wrapper">
-        <div class="countdown-label">Event Countdown</div>
+      @if(($eventSetting->countdown_enabled ?? false) && $eventSetting->countdown_target_at)
+      <div class="countdown-wrapper" id="countdown-wrapper">
+        <div class="countdown-label">{{ e($eventSetting->countdown_label ?? 'EVENT COUNTDOWN') }}</div>
         <div class="countdown" id="countdown">
           <div class="count-block"><span id="cd-days">00</span><small>Days</small></div>
           <div class="count-sep">:</div>
@@ -94,6 +95,10 @@
           <div class="count-block"><span id="cd-secs">00</span><small>Secs</small></div>
         </div>
       </div>
+      <script>
+        window.__COUNTDOWN_TARGET = "{{ $eventSetting->countdown_target_at->toIso8601String() }}";
+      </script>
+      @endif
     </div>
     <div class="scroll-indicator">
       <div class="scroll-line"></div>
