@@ -128,9 +128,15 @@ class ParticipantResource extends Resource
                     }),
                 Tables\Columns\TextColumn::make('proof_of_payment')
                     ->label('Payment Proof')
-                    ->formatStateUsing(fn ($state) => $state ? 'Available' : 'Missing')
+                    ->formatStateUsing(function (?string $state, Registration $record) {
+                        if ($record->competition->isFree()) return 'FREE';
+                        return $state ? 'Available' : 'Missing';
+                    })
                     ->badge()
-                    ->color(fn ($state) => $state ? 'success' : 'danger')
+                    ->color(function (?string $state, Registration $record) {
+                        if ($record->competition->isFree()) return 'success';
+                        return $state ? 'success' : 'danger';
+                    })
                     ->url(fn (Registration $record) => $record->proof_of_payment ? asset('storage/' . $record->proof_of_payment) : null)
                     ->openUrlInNewTab(),
                 Tables\Columns\TextColumn::make('ticket.ticket_code')
@@ -182,6 +188,9 @@ class ParticipantResource extends Resource
                     ->schema([
                         Infolists\Components\TextEntry::make('user.name')
                             ->label('Full Name'),
+                        Infolists\Components\TextEntry::make('user.nim')
+                            ->label('NIM')
+                            ->formatStateUsing(fn (?string $state) => $state ?? '-'),
                         Infolists\Components\TextEntry::make('user.email')
                             ->label('Email'),
                         Infolists\Components\TextEntry::make('user.id')
@@ -234,7 +243,10 @@ class ParticipantResource extends Resource
                     ->schema([
                         Infolists\Components\TextEntry::make('proof_of_payment')
                             ->label('Payment Proof')
-                            ->formatStateUsing(fn ($state) => $state ? 'Available' : 'Missing'),
+                            ->formatStateUsing(function (?string $state, Registration $record) {
+                                if ($record->competition->isFree()) return 'Not Required';
+                                return $state ? 'Available' : 'Missing';
+                            }),
                         Infolists\Components\TextEntry::make('status')
                             ->label('Verification Status')
                             ->formatStateUsing(fn (string $state): string => match ($state) {

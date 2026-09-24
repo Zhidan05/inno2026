@@ -62,7 +62,9 @@ class CompetitionRegistrationController extends Controller
         // Base Validation
         $rules = [
             'registration_mode' => ['required', Rule::in(['solo', 'team'])],
-            'proof_of_payment' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:2048'],
+            'proof_of_payment' => $competition->requiresPayment()
+                ? ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:2048']
+                : ['nullable'],
         ];
 
         // Mode specific validation
@@ -92,8 +94,11 @@ class CompetitionRegistrationController extends Controller
 
         $validated = $request->validate($rules);
 
-        // Upload Proof
-        $path = $request->file('proof_of_payment')->store('payment-proofs', 'public');
+        // Upload Proof (only for paid competitions with an uploaded file)
+        $path = null;
+        if ($competition->requiresPayment() && $request->hasFile('proof_of_payment')) {
+            $path = $request->file('proof_of_payment')->store('payment-proofs', 'public');
+        }
 
         // Team name for solo
         $teamName = $request->registration_mode === 'team' ? $validated['team_name'] : Auth::user()->name;
@@ -122,3 +127,4 @@ class CompetitionRegistrationController extends Controller
         return redirect()->route('dashboard')->with('success', 'Registration submitted successfully! Waiting for verification.');
     }
 }
+

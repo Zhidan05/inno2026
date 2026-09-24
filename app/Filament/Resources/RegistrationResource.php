@@ -135,7 +135,7 @@ class RegistrationResource extends Resource
                     ->directory('payment-proofs')
                     ->downloadable()
                     ->openable()
-                    ->visible(fn () => auth()->user()?->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])),
+                    ->visible(fn (?Registration $record) => auth()->user()?->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value]) && ($record ? $record->competition->requiresPayment() : true)),
                 Forms\Components\Select::make('status')
                     ->options([
                         'pending' => 'Pending',
@@ -202,9 +202,19 @@ class RegistrationResource extends Resource
                     ->url(fn ($record) => $record->submission_file_path ? \Illuminate\Support\Facades\Storage::url($record->submission_file_path) : null)
                     ->openUrlInNewTab()
                     ->visible(fn () => auth()->user()?->hasRole([UserRole::ADMIN->value, UserRole::JUDGE->value])),
-                Tables\Columns\ImageColumn::make('proof_of_payment')
+                Tables\Columns\TextColumn::make('proof_of_payment')
                     ->label('Payment Proof')
-                    ->square()
+                    ->formatStateUsing(function (?string $state, Registration $record) {
+                        if ($record->competition->isFree()) return 'Not Required';
+                        return $state ? 'Available' : 'Missing';
+                    })
+                    ->badge()
+                    ->color(function (?string $state, Registration $record) {
+                        if ($record->competition->isFree()) return 'gray';
+                        return $state ? 'success' : 'danger';
+                    })
+                    ->url(fn (Registration $record) => $record->proof_of_payment ? asset('storage/' . $record->proof_of_payment) : null)
+                    ->openUrlInNewTab()
                     ->visible(fn () => auth()->user()?->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
