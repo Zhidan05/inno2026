@@ -43,5 +43,12 @@
                 Log in
             </button>
         </div>
+
+        <div class="mt-4 text-center text-sm text-gray-400">
+            Don't have an account? 
+            <a href="{{ route('register') }}" class="text-[#FFC209] hover:text-yellow-400 transition-colors">
+                Sign up now
+            </a>
+        </div>
     </form>
 </x-guest-layout>

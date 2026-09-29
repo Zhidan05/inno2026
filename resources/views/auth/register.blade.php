@@ -14,6 +14,13 @@
             <x-input-error :messages="$errors->get('name')" class="mt-2" />
         </div>
 
+        <!-- NIM -->
+        <div class="mt-4">
+            <label for="nim" class="block font-medium text-sm text-gray-300">NIM <span class="text-red-500">*</span></label>
+            <input id="nim" class="block mt-1 w-full bg-[#0a0f1d] border border-gray-600 text-gray-200 focus:border-[#FFC209] focus:ring focus:ring-[#FFC209] focus:ring-opacity-50 rounded-md shadow-sm" type="text" name="nim" value="{{ old('nim') }}" required autocomplete="off" />
+            <x-input-error :messages="$errors->get('nim')" class="mt-2" />
+        </div>
+
         <!-- Email Address -->
         <div class="mt-4">
             <label for="email" class="block font-medium text-sm text-gray-300">Email Address <span class="text-red-500">*</span></label>

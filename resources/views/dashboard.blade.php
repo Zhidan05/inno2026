@@ -237,7 +237,11 @@
                               </strong>
                               <p>
                                   @if($registration->status === 'pending')
-                                      Your registration and payment proof are currently being reviewed.
+                                      @if($registration->competition->isFree())
+                                          Your registration is currently being reviewed.
+                                      @else
+                                          Your registration and payment proof are currently being reviewed.
+                                      @endif
                                   @elseif($registration->status === 'approved')
                                       Your participation has been confirmed.
                                   @elseif($registration->status === 'rejected')
@@ -458,7 +462,7 @@
                       <div><i class="fi fi-rr-users"></i> {{ ucwords(str_replace('_', ' ', $comp->registration_type)) }}</div>
                       <div><i class="fi fi-rr-calendar"></i> {{ $comp->competition_start_at ? $comp->competition_start_at->format('M j, Y') : 'TBA' }}</div>
                       <div><i class="fi fi-rr-marker"></i> {{ $comp->location ?? 'Online' }}</div>
-                      <div><i class="fi fi-rr-money-bill-wave"></i> {{ $comp->registration_fee > 0 ? 'IDR ' . number_format($comp->registration_fee,0,',','.') : 'Free' }}</div>
+                      <div><i class="fi fi-rr-money-bill-wave"></i> {{ $comp->isFree() ? 'FREE' : 'IDR ' . number_format($comp->registration_fee, 0, ',', '.') }}</div>
                   </div>
                   
                   <div class="dash-action-row">

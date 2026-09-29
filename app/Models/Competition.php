@@ -44,6 +44,22 @@ class Competition extends Model
         });
     }
 
+    /**
+     * Determine if this competition is free (no registration fee).
+     */
+    public function isFree(): bool
+    {
+        return (float) $this->registration_fee <= 0;
+    }
+
+    /**
+     * Determine if this competition requires payment proof.
+     */
+    public function requiresPayment(): bool
+    {
+        return ! $this->isFree();
+    }
+
     public function registrations(): HasMany
     {
         return $this->hasMany(Registration::class);

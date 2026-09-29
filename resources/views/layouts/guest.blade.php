@@ -38,7 +38,11 @@
                 <li><a href="{{ url('/') }}#gallery" class="nav-link">Gallery</a></li>
                 <li><a href="{{ url('/') }}#about" class="nav-link">Contact</a></li>
                 @if (Route::has('login'))
-                    <li><a href="{{ route('login') }}" class="nav-link nav-login">Login</a></li>
+                    @if (request()->routeIs('login'))
+                        <li><a href="{{ route('register') }}" class="nav-link nav-login">Register</a></li>
+                    @else
+                        <li><a href="{{ route('login') }}" class="nav-link nav-login">Login</a></li>
+                    @endif
                 @endif
             </ul>
             <div class="nav-hamburger" id="hamburger">
