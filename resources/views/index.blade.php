@@ -126,7 +126,7 @@
         $teamMax = $competition->max_team_members ?? 1;
         $teamLabel = $teamMax <= 1 ? '1 Member' : '1 - ' . $teamMax . ' Members';
         $fee = $competition->registration_fee ?? 0;
-        $feeFormatted = $fee > 0 ? 'IDR ' . number_format($fee, 0, ',', ',') : 'Free';
+        $feeFormatted = $fee > 0 ? 'IDR ' . number_format($fee, 0, ',', '.') : 'Free';
         $isOpen = ($competition->status ?? '') === 'registration_open';
       @endphp
       <div class="stitch-comp-card{{ $isOpen ? ' stitch-comp-card--featured' : '' }}">

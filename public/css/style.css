@@ -876,8 +876,10 @@ body {
 }
 
 .stitch-comp-fee {
-  font-family: var(--font-head);
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.85rem;
   font-weight: 700;
+  letter-spacing: 0.3px;
   color: var(--accent-gold) !important;
 }
 
