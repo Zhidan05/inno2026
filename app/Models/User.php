@@ -14,7 +14,7 @@ use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use App\Enums\UserRole;
 
-#[Fillable(['name', 'email', 'phone', 'institution', 'password'])]
+#[Fillable(['name', 'nim', 'email', 'phone', 'institution', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser
 {

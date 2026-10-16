@@ -713,110 +713,232 @@ body {
   background-size: 40px 40px, 40px 40px, 100% 100%;
 }
 
-/* --- Competitions Grid (replaces timeline) --- */
-.timeline-container {
+/* --- Stitch Competition Grid --- */
+.stitch-comp-grid {
   position: relative;
+  z-index: 1;
   max-width: 1160px;
   margin: 0 auto;
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.25rem;
+  gap: 1.5rem;
   padding: 0 0.5rem;
 }
 
-/* Hide timeline SVG — no longer used */
-.timeline-path-svg {
-  display: none;
-}
-
-.comp-card-wrap {
+/* --- Stitch Competition Card --- */
+.stitch-comp-card {
   position: relative;
-  z-index: 1;
-  display: flex;
-  width: 100%;
-  max-width: 420px;
-  margin-inline: auto;
-}
-
-/* Reset data-side positioning — grid handles layout now */
-.comp-card-wrap[data-side="left"],
-.comp-card-wrap[data-side="right"] {
-  margin-left: auto;
-  margin-right: auto;
-  align-self: stretch;
-}
-
-.comp-card {
-  width: 100%;
-  background: var(--surface);
-  border: 1px solid var(--border-default);
-  border-radius: 18px;
-  padding: 1.8rem;
-  backdrop-filter: blur(14px);
+  background: rgba(8, 17, 44, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(63, 128, 239, 0.18);
+  border-radius: 16px;
+  padding: 1.75rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  min-height: 220px;
-  transition: transform 0.35s, box-shadow 0.35s, border-color 0.35s;
-  cursor: default;
+  justify-content: space-between;
+  min-height: 300px;
+  transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+  overflow: hidden;
 }
 
-.comp-card:hover {
+.stitch-comp-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 0 40px var(--glow-blue), 0 0 80px rgba(48, 58, 228, 0.15);
-  border-color: var(--border-emphasis);
+  box-shadow: 0 0 35px -5px rgba(63, 128, 239, 0.35);
+  border-color: rgba(63, 128, 239, 0.45);
 }
 
-.card-icon {
-  font-size: 2.4rem;
-  line-height: 1;
-  filter: drop-shadow(0 0 10px var(--glow-gold));
+/* Featured / Open Registration card */
+.stitch-comp-card--featured {
+  border-color: rgba(63, 128, 239, 0.40);
+  box-shadow: 0 0 15px -2px rgba(63, 128, 239, 0.30);
+}
+
+.stitch-comp-card--featured:hover {
+  box-shadow: 0 0 45px -5px rgba(63, 128, 239, 0.45);
+  border-color: rgba(63, 128, 239, 0.55);
+}
+
+/* Hot badge */
+.stitch-comp-hot-badge {
+  position: absolute;
+  top: -1px;
+  right: 1.5rem;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-light));
+  color: var(--text-primary);
+  font-family: var(--font-head);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 0.3rem 0.75rem;
+  border-radius: 0 0 6px 6px;
+  box-shadow: 0 4px 12px rgba(48, 58, 228, 0.40);
+}
+
+.stitch-comp-card-inner {
+  flex: 1;
+}
+
+/* Header: Icon + Badge */
+.stitch-comp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.stitch-comp-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(48, 58, 228, 0.10);
+  border: 1px solid rgba(63, 128, 239, 0.30);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  color: var(--accent-blue-light);
+  transition: transform 0.3s ease;
   flex-shrink: 0;
 }
 
-.card-body {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
+.stitch-comp-card:hover .stitch-comp-icon {
+  transform: scale(1.1);
 }
 
-.card-body h3 {
+.stitch-comp-badge {
   font-family: var(--font-head);
-  font-size: 1.05rem;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--accent-blue-light);
+  background: rgba(48, 58, 228, 0.12);
+  border: 1px solid rgba(63, 128, 239, 0.30);
+  padding: 0.25rem 0.65rem;
+  border-radius: 4px;
+}
+
+/* Title */
+.stitch-comp-title {
+  font-family: var(--font-head);
+  font-size: 1.08rem;
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 0.5rem;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
+  line-height: 1.3;
+  transition: color 0.3s ease;
 }
 
-.card-body p {
-  font-size: 0.88rem;
+.stitch-comp-card:hover .stitch-comp-title {
+  color: var(--accent-blue-light);
+}
+
+/* Description */
+.stitch-comp-desc {
+  font-size: 0.82rem;
   color: var(--text-secondary);
-  font-weight: 300;
   line-height: 1.6;
-  flex-grow: 1;
+  font-weight: 300;
+  margin-bottom: 0;
 }
 
-.btn-card {
-  display: inline-block;
-  margin-top: auto;
-  padding-top: 0.75rem;
+/* Info section */
+.stitch-comp-info {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stitch-comp-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.stitch-comp-info-row + .stitch-comp-info-row {
+  margin-top: 0.4rem;
+}
+
+.stitch-comp-info-label {
   font-family: var(--font-head);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  color: var(--accent-gold);
-  text-decoration: none;
-  border-bottom: 1px solid rgba(255, 194, 9, 0.35);
-  padding-bottom: 2px;
-  transition: color 0.2s, border-color 0.2s;
-  align-self: flex-start;
+  font-size: 0.68rem;
+  letter-spacing: 0.5px;
+  color: var(--text-tertiary);
 }
 
-.btn-card:hover {
+.stitch-comp-info-value {
+  font-weight: 600;
   color: var(--text-primary);
-  border-color: var(--text-primary);
+}
+
+.stitch-comp-fee {
+  font-family: var(--font-head);
+  font-weight: 700;
+  color: var(--accent-gold) !important;
+}
+
+/* CTA */
+.stitch-comp-cta {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+}
+
+.stitch-comp-link {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-head);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--accent-blue-light);
+  text-decoration: none;
+  transition: color 0.25s ease;
+}
+
+.stitch-comp-link:hover {
+  color: var(--text-primary);
+}
+
+.stitch-comp-link--active {
+  color: var(--accent-gold);
+}
+
+.stitch-comp-link--active:hover {
+  color: var(--accent-gold-hover);
+}
+
+.stitch-comp-arrow {
+  display: inline-block;
+  margin-left: 0.4rem;
+  transition: transform 0.25s ease;
+}
+
+.stitch-comp-link:hover .stitch-comp-arrow {
+  transform: translateX(4px);
+}
+
+/* Empty state */
+.stitch-comp-empty {
+  text-align: center;
+  width: 100%;
+  padding: 3rem 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  grid-column: 1 / -1;
+}
+
+.stitch-comp-empty h3 {
+  font-family: var(--font-head);
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.stitch-comp-empty p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
 }
 
 /* =====================================================
@@ -927,72 +1049,109 @@ body {
   padding: 0 2rem;
 }
 
-.carousel-outer {
-  overflow: hidden;
-  width: 100%;
+/* --- Stitch Gallery Container --- */
+.stitch-gallery-container {
   position: relative;
-  mask-image: linear-gradient(90deg, transparent 0%, black 8%, black 92%, transparent 100%);
+  z-index: 1;
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
-.carousel-track {
-  display: flex;
+/* --- Stitch Gallery Grid --- */
+.stitch-gallery-grid {
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 1.5rem;
-  padding: 1rem 0;
-  will-change: transform;
-  /* JS controls transform */
 }
 
-.gallery-card {
+/* --- Stitch Gallery Card --- */
+.stitch-gallery-card {
   position: relative;
-  flex: 0 0 320px;
-  height: 220px;
   border-radius: 16px;
   overflow: hidden;
-  border: 1px solid var(--border-default);
+  background: rgba(8, 17, 44, 0.65);
+  border: 1px solid rgba(63, 128, 239, 0.20);
+  aspect-ratio: 4 / 3;
   cursor: pointer;
-  transition: border-color 0.3s, box-shadow 0.3s;
+  transition: border-color 0.35s ease, box-shadow 0.35s ease;
 }
 
-.gallery-card:hover {
-  border-color: var(--accent-gold);
-  box-shadow: 0 0 30px rgba(255, 194, 9, 0.25);
+.stitch-gallery-card:hover {
+  border-color: rgba(63, 128, 239, 0.45);
+  box-shadow: 0 8px 40px -8px rgba(63, 128, 239, 0.30);
 }
 
-.gallery-img {
+.stitch-gallery-img {
   width: 100%;
   height: 100%;
-  background-size: cover;
-  background-position: center;
-  transition: transform 0.5s;
+  object-fit: cover;
+  object-position: center;
+  opacity: 0.80;
+  transition: transform 0.5s ease, opacity 0.5s ease;
 }
 
-.gallery-card:hover .gallery-img {
-  transform: scale(1.07);
-}
-
-/* Placeholder gradient images removed to save bytes */
-.gallery-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(4, 10, 67, 0.85) 0%, transparent 50%);
-  display: flex;
-  align-items: flex-end;
-  padding: 1.2rem;
-  opacity: 0;
-  transition: opacity 0.35s;
-}
-
-.gallery-card:hover .gallery-overlay {
+.stitch-gallery-card:hover .stitch-gallery-img {
+  transform: scale(1.05);
   opacity: 1;
 }
 
-.gallery-overlay span {
+/* Gradient overlay */
+.stitch-gallery-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top,
+    rgba(4, 10, 67, 0.90) 0%,
+    rgba(4, 10, 67, 0.40) 40%,
+    transparent 70%);
+  opacity: 0.85;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.stitch-gallery-card:hover .stitch-gallery-overlay {
+  opacity: 0.70;
+}
+
+/* Caption at bottom */
+.stitch-gallery-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem 1.25rem;
+  z-index: 2;
+}
+
+.stitch-gallery-title {
   font-family: var(--font-head);
-  font-size: 0.8rem;
+  font-size: 0.92rem;
   font-weight: 700;
   color: var(--text-primary);
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
+  line-height: 1.3;
+  margin: 0;
 }
+
+/* Empty state */
+.stitch-gallery-empty {
+  text-align: center;
+  width: 100%;
+  padding: 3rem 1rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.stitch-gallery-empty h3 {
+  font-family: var(--font-head);
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.stitch-gallery-empty p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
 
 /* =====================================================
    ABOUT
@@ -1780,14 +1939,16 @@ body {
   .span2 { grid-column: span 2; }
   .logo-grid { grid-template-columns: repeat(4, 1fr); }
 
-  /* Competitions grid: 2 columns at tablet */
-  .timeline-container {
+  /* Stitch Competitions grid: 2 columns at tablet */
+  .stitch-comp-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
     padding: 0;
   }
-  .comp-card-wrap {
-    max-width: none;
+
+  /* Stitch Gallery grid: 2 columns at tablet */
+  .stitch-gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -1888,8 +2049,8 @@ body {
   /* About Grid: 3-column */
   .about-grid { grid-template-columns: repeat(3, 1fr); }
 
-  /* Competitions grid: keep 2 columns at 901px */
-  .timeline-container {
+  /* Stitch Competitions grid: keep 2 columns at 901px */
+  .stitch-comp-grid {
     gap: 1.75rem;
   }
 
@@ -1901,10 +2062,15 @@ body {
 
 /* ── XL: 1024px — Full desktop decorative enhancement ── */
 @media (min-width: 1024px) {
-  /* Competitions grid: 3 columns at full desktop */
-  .timeline-container {
+  /* Stitch Competitions grid: 3 columns at full desktop */
+  .stitch-comp-grid {
     grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
+  }
+
+  /* Stitch Gallery grid: 3 columns at full desktop */
+  .stitch-gallery-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
 
   /* Hero: full desktop orbs */

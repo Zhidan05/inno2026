@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
+use Illuminate\Validation\Rule;
 use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
 use Filament\Forms;
@@ -29,6 +30,13 @@ class UserResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
+                Forms\Components\TextInput::make('nim')
+                    ->label('NIM')
+                    ->maxLength(30)
+                    ->required(fn (Forms\Get $get): bool => $get('role') === \App\Enums\UserRole::PARTICIPANT->value)
+                    ->rules(fn (?User $record) => [
+                        Rule::unique('users', 'nim')->ignore($record?->id),
+                    ]),
                 Forms\Components\TextInput::make('email')
                     ->email()
                     ->required()
@@ -81,6 +89,11 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('nim')
+                    ->label('NIM')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
                 Tables\Columns\TextColumn::make('email')
                     ->searchable()
                     ->sortable(),
@@ -126,11 +139,12 @@ class UserResource extends Resource
                         ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
                             return response()->streamDownload(function () use ($records) {
                                 $handle = fopen('php://output', 'w');
-                                fputcsv($handle, ['ID', 'Name', 'Email', 'Phone', 'Institution', 'Joined At']);
+                                fputcsv($handle, ['ID', 'Name', 'NIM', 'Email', 'Phone', 'Institution', 'Joined At']);
                                 foreach ($records as $record) {
                                     fputcsv($handle, [
                                         $record->id,
                                         $record->name,
+                                        $record->nim,
                                         $record->email,
                                         $record->phone,
                                         $record->institution,
@@ -154,6 +168,9 @@ class UserResource extends Resource
                 Infolists\Components\Section::make('User Information')
                     ->schema([
                         Infolists\Components\TextEntry::make('name'),
+                        Infolists\Components\TextEntry::make('nim')
+                            ->label('NIM')
+                            ->formatStateUsing(fn (?string $state) => $state ?? '-'),
                         Infolists\Components\TextEntry::make('email'),
                         Infolists\Components\TextEntry::make('roles.name')
                             ->badge()

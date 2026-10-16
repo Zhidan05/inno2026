@@ -239,8 +239,8 @@
           <div class="registration-block">
               <div class="reg-header">
                   <h2>Registration Details</h2>
-                  <div style="font-family: var(--font-display); font-size: 0.9rem; color: var(--text-secondary);">
-                      Fee: IDR {{ number_format($competition->registration_fee, 0, ',', '.') }}
+              <div style="font-family: var(--font-display); font-size: 0.9rem; color: var(--text-secondary);">
+                      Fee: {{ $competition->isFree() ? 'FREE' : 'IDR ' . number_format($competition->registration_fee, 0, ',', '.') }}
                   </div>
               </div>
               <div class="reg-body">
@@ -288,6 +288,7 @@
                   </div>
 
                   <!-- PAYMENT PROOF -->
+                  @if($competition->requiresPayment())
                   <div class="dash-card" style="margin-bottom: 1.5rem;">
                       <h4 class="form-section-title"><i class="fi fi-rr-receipt"></i> 3. Payment Proof</h4>
                       
@@ -308,6 +309,17 @@
                           </div>
                       </div>
                   </div>
+                  @else
+                  <div class="dash-card" style="margin-bottom: 1.5rem;">
+                      <h4 class="form-section-title"><i class="fi fi-rr-receipt"></i> 3. Registration Fee</h4>
+                      <div class="member-block" style="border-left-color: #10b981; margin-bottom: 0;">
+                          <div style="font-weight: 600; color: #10b981; margin-bottom: 0.25rem;">FREE</div>
+                          <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">
+                              No proof of payment is required for this competition.
+                          </p>
+                      </div>
+                  </div>
+                  @endif
 
                   <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem; flex-wrap: wrap;">
                       <a href="{{ route('dashboard') }}" class="btn-secondary" style="flex: 1; min-width: 150px; max-width: 200px;">Cancel</a>

@@ -82,8 +82,9 @@
             <a href="{{ route('register') }}" class="btn-ghost">Register Now</a>
         @endauth
       </div>
-      <div class="countdown-wrapper">
-        <div class="countdown-label">Event Countdown</div>
+      @if(($eventSetting->countdown_enabled ?? false) && $eventSetting->countdown_target_at)
+      <div class="countdown-wrapper" id="countdown-wrapper">
+        <div class="countdown-label">{{ e($eventSetting->countdown_label ?? 'EVENT COUNTDOWN') }}</div>
         <div class="countdown" id="countdown">
           <div class="count-block"><span id="cd-days">00</span><small>Days</small></div>
           <div class="count-sep">:</div>
@@ -94,6 +95,10 @@
           <div class="count-block"><span id="cd-secs">00</span><small>Secs</small></div>
         </div>
       </div>
+      <script>
+        window.__COUNTDOWN_TARGET = "{{ $eventSetting->countdown_target_at->toIso8601String() }}";
+      </script>
+      @endif
     </div>
     <div class="scroll-indicator">
       <div class="scroll-line"></div>
@@ -109,33 +114,57 @@
       <p class="section-sub">Five arenas of innovation. One ultimate challenge.</p>
     </div>
 
-    <div class="timeline-container">
-      <svg class="timeline-path-svg" id="timelineSvg" viewBox="0 0 200 1200" preserveAspectRatio="none">
-        <path id="timelinePathDef"
-          d="M100 0 L100 1200"
-          fill="none" stroke="url(#pathGrad)" stroke-width="3" />
-        <defs>
-          <linearGradient id="pathGrad" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
-            <stop offset="0%" stop-color="#303AE4" />
-            <stop offset="100%" stop-color="#FFC209" />
-          </linearGradient>
-        </defs>
-
-      </svg>
-
+    <div class="stitch-comp-grid">
       @forelse($competitions ?? [] as $index => $competition)
-      <div class="comp-card-wrap" data-side="{{ $index % 2 == 0 ? 'left' : 'right' }}">
-        <div class="comp-card">
-          <div class="card-icon"><i class="{{ $competition['icon'] ?? 'fi fi-rr-star' }}"></i></div>
-          <div class="card-body">
-            <h3>{{ $competition['name'] ?? 'Competition' }}</h3>
-            <p>{{ $competition['description'] ?? '' }}</p>
-            <a href="{{ route('competition.register', $competition->slug ?? '') }}" class="btn-card">Register Now →</a>
+      @php
+        $typeBadge = match($competition->registration_type ?? 'individual_or_team') {
+          'individual' => 'Individual',
+          'team' => 'Team',
+          'individual_or_team' => 'Solo / Team',
+          default => ucfirst($competition->registration_type ?? ''),
+        };
+        $teamMax = $competition->max_team_members ?? 1;
+        $teamLabel = $teamMax <= 1 ? '1 Member' : '1 - ' . $teamMax . ' Members';
+        $fee = $competition->registration_fee ?? 0;
+        $feeFormatted = $fee > 0 ? 'IDR ' . number_format($fee, 0, ',', ',') : 'Free';
+        $isOpen = ($competition->status ?? '') === 'registration_open';
+      @endphp
+      <div class="stitch-comp-card{{ $isOpen ? ' stitch-comp-card--featured' : '' }}">
+        @if($isOpen)
+        <div class="stitch-comp-hot-badge">OPEN REGISTRATION</div>
+        @endif
+        <div class="stitch-comp-card-inner">
+          <!-- Header: Icon + Category Badge -->
+          <div class="stitch-comp-header">
+            <div class="stitch-comp-icon">
+              <i class="{{ $competition['icon'] ?? 'fi fi-rr-star' }}"></i>
+            </div>
+            <span class="stitch-comp-badge">{{ $typeBadge }}</span>
           </div>
+          <!-- Title & Description -->
+          <h3 class="stitch-comp-title">{{ $competition->name ?? 'Competition' }}</h3>
+          <p class="stitch-comp-desc">{{ \Illuminate\Support\Str::limit($competition->description ?? '', 140) }}</p>
+          <!-- Info Rows -->
+          <div class="stitch-comp-info">
+            <div class="stitch-comp-info-row">
+              <span class="stitch-comp-info-label">Team Size:</span>
+              <span class="stitch-comp-info-value">{{ $teamLabel }}</span>
+            </div>
+            <div class="stitch-comp-info-row">
+              <span class="stitch-comp-info-label">Registration Fee:</span>
+              <span class="stitch-comp-info-value stitch-comp-fee">{{ $feeFormatted }}</span>
+            </div>
+          </div>
+        </div>
+        <!-- CTA -->
+        <div class="stitch-comp-cta">
+          <a href="{{ route('competition.register', $competition->slug ?? '') }}" class="stitch-comp-link{{ $isOpen ? ' stitch-comp-link--active' : '' }}">
+            Register Now <span class="stitch-comp-arrow">→</span>
+          </a>
         </div>
       </div>
       @empty
-      <div class="no-data-message" style="text-align: center; width: 100%; padding: 40px; color: rgba(255, 255, 255, 0.7); position: relative; z-index: 2;">
+      <div class="stitch-comp-empty">
           <h3>No competitions announced yet.</h3>
           <p>Stay tuned! Competitions will be updated soon.</p>
       </div>
@@ -157,25 +186,34 @@
       <h2 class="section-title">Gallery</h2>
       <p class="section-sub">Highlights from past InnoElectrica editions.</p>
     </div>
-    <div class="carousel-outer">
+
+    <div class="stitch-gallery-container">
       @if(empty($galleries) || count($galleries) === 0)
-        <div class="no-data-message" style="text-align: center; width: 100%; padding: 40px; color: rgba(255, 255, 255, 0.7);">
+        <div class="stitch-gallery-empty">
           <h3>No gallery available.</h3>
           <p>Memories are being collected!</p>
         </div>
       @else
-        <div class="carousel-track" id="carouselTrack">
-          <!-- Cards duplicated in JS for infinite loop -->
+        <div class="stitch-gallery-grid">
           @foreach($galleries as $gallery)
-          <div class="gallery-card" data-title="{{ $gallery['title'] ?? 'Gallery Image' }}">
-            <div class="gallery-img" style="background-image: url('{{ \Illuminate\Support\Facades\Storage::url($gallery['image'] ?? '') }}'); background-size: cover; background-position: center;"></div>
-            <div class="gallery-overlay"><span>{{ $gallery['title'] ?? '' }}</span></div>
+          <div class="stitch-gallery-card">
+            <img
+              src="{{ \Illuminate\Support\Facades\Storage::url($gallery['image'] ?? '') }}"
+              alt="{{ $gallery['title'] ?? 'Gallery Image' }}"
+              class="stitch-gallery-img"
+              loading="lazy"
+            />
+            <div class="stitch-gallery-overlay"></div>
+            <div class="stitch-gallery-caption">
+              <h4 class="stitch-gallery-title">{{ $gallery['title'] ?? '' }}</h4>
+            </div>
           </div>
           @endforeach
         </div>
       @endif
     </div>
   </section>
+
 
   <!-- ABOUT / CONTACT -->
   <section class="about" id="about">
