@@ -14,7 +14,7 @@ class VerifyEmailController extends Controller
      */
     public function __invoke(EmailVerificationRequest $request): RedirectResponse
     {
-        $redirectUrl = $request->user()->defaultRedirectUrl() . '?verified=1';
+        $redirectUrl = $request->user()->defaultRedirectUrl().'?verified=1';
 
         if ($request->user()->hasVerifiedEmail()) {
             return redirect()->intended($redirectUrl);

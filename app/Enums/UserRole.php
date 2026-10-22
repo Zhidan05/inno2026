@@ -11,7 +11,7 @@ enum UserRole: string
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::ADMIN => 'Admin',
             self::MODERATOR => 'Moderator',
             self::JUDGE => 'Judge',
@@ -21,7 +21,7 @@ enum UserRole: string
 
     public function defaultRoute(): string
     {
-        return match($this) {
+        return match ($this) {
             self::ADMIN, self::MODERATOR, self::JUDGE => '/admin',
             self::PARTICIPANT => '/dashboard',
         };
@@ -29,7 +29,7 @@ enum UserRole: string
 
     public function isBackoffice(): bool
     {
-        return match($this) {
+        return match ($this) {
             self::ADMIN, self::MODERATOR, self::JUDGE => true,
             self::PARTICIPANT => false,
         };

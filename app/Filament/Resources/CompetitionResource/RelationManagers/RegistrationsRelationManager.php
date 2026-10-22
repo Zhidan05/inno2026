@@ -2,22 +2,23 @@
 
 namespace App\Filament\Resources\CompetitionResource\RelationManagers;
 
+use App\Enums\UserRole;
 use App\Models\Registration;
 use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Infolists;
+use Filament\Infolists\Infolist;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Infolists;
-use Filament\Infolists\Infolist;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Storage;
 
 class RegistrationsRelationManager extends RelationManager
 {
     protected static string $relationship = 'registrations';
 
     protected static ?string $recordTitleAttribute = 'team_name';
-    
+
     protected static ?string $title = 'Participant / Registration History';
 
     public function infolist(Infolist $infolist): Infolist
@@ -44,7 +45,7 @@ class RegistrationsRelationManager extends RelationManager
                 Infolists\Components\TextEntry::make('submission_file_path')
                     ->label('Submission File')
                     ->formatStateUsing(fn ($state) => $state ? 'Download' : '-')
-                    ->url(fn ($record) => $record->submission_file_path ? \Illuminate\Support\Facades\Storage::url($record->submission_file_path) : null)
+                    ->url(fn ($record) => $record->submission_file_path ? Storage::url($record->submission_file_path) : null)
                     ->openUrlInNewTab(),
                 Infolists\Components\TextEntry::make('created_at')
                     ->label('Submitted At')
@@ -92,13 +93,13 @@ class RegistrationsRelationManager extends RelationManager
                     ->url(fn ($record) => $record->submission_link)
                     ->openUrlInNewTab()
                     ->limit(15)
-                    ->visible(fn () => auth()->user()?->hasRole([\App\Enums\UserRole::ADMIN->value, \App\Enums\UserRole::JUDGE->value])),
+                    ->visible(fn () => auth()->user()?->hasRole([UserRole::ADMIN->value, UserRole::JUDGE->value])),
                 Tables\Columns\TextColumn::make('submission_file_path')
                     ->label('File')
                     ->formatStateUsing(fn ($state) => $state ? 'Download' : '-')
-                    ->url(fn ($record) => $record->submission_file_path ? \Illuminate\Support\Facades\Storage::url($record->submission_file_path) : null)
+                    ->url(fn ($record) => $record->submission_file_path ? Storage::url($record->submission_file_path) : null)
                     ->openUrlInNewTab()
-                    ->visible(fn () => auth()->user()?->hasRole([\App\Enums\UserRole::ADMIN->value, \App\Enums\UserRole::JUDGE->value])),
+                    ->visible(fn () => auth()->user()?->hasRole([UserRole::ADMIN->value, UserRole::JUDGE->value])),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Submitted')
                     ->dateTime()
@@ -119,8 +120,10 @@ class RegistrationsRelationManager extends RelationManager
                     ->color('primary')
                     ->form([
                         Forms\Components\TextInput::make('grade')
-                            ->label('Grade / Score')
+                            ->label('Grade / Score (0 - 100)')
                             ->numeric()
+                            ->minValue(0)
+                            ->maxValue(100)
                             ->step('0.01')
                             ->required(),
                     ])
@@ -129,12 +132,12 @@ class RegistrationsRelationManager extends RelationManager
                             'grade' => $data['grade'],
                             'scored_by' => auth()->id(),
                         ]);
-                        \Filament\Notifications\Notification::make()
+                        Notification::make()
                             ->title('Score updated successfully')
                             ->success()
                             ->send();
                     })
-                    ->visible(fn (Registration $record): bool => auth()->user()?->hasRole([\App\Enums\UserRole::ADMIN->value, \App\Enums\UserRole::JUDGE->value]) && $record->status === 'approved' && in_array($record->competition->status, ['ongoing', 'completed'])),
+                    ->visible(fn (Registration $record): bool => auth()->user()?->hasRole([UserRole::ADMIN->value, UserRole::JUDGE->value]) && $record->status === 'approved' && in_array($record->competition->status, ['ongoing', 'completed'])),
             ])
             ->bulkActions([
                 //

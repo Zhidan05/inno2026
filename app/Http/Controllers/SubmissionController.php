@@ -22,6 +22,10 @@ class SubmissionController extends Controller
 
         $competition = $registration->competition;
 
+        if ($competition->isEnded()) {
+            return back()->with('error', 'This competition has ended. Submissions are no longer accepted.');
+        }
+
         if ($competition->status !== 'ongoing') {
             return back()->with('error', 'Submissions are only allowed when the competition is ongoing.');
         }
@@ -41,7 +45,7 @@ class SubmissionController extends Controller
         }
 
         // If 'both' is selected, they must provide AT LEAST one
-        if ($competition->submission_type === 'both' && !$request->hasFile('submission_file') && !$request->filled('submission_link')) {
+        if ($competition->submission_type === 'both' && ! $request->hasFile('submission_file') && ! $request->filled('submission_link')) {
             return back()->with('error', 'You must provide either a file or a link.');
         }
 

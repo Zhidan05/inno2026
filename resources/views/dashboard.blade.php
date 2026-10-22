@@ -7,22 +7,23 @@
   <title>Dashboard - InnoElectrica 26</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Exo+2:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.4.2/uicons-regular-rounded/css/uicons-regular-rounded.css'>
   <link rel="stylesheet" href="{{ asset('css/style.css') }}" />
+  @vite(['resources/css/app.css', 'resources/js/app.js'])
   <style>
       :root {
-          --bg-primary: #050811;
-          --bg-secondary: #0a0f1d;
-          --bg-tertiary: #111827;
-          --surface: #111827;
-          --surface-elevated: #1f2937;
-          --border-subtle: rgba(255, 255, 255, 0.05);
-          --border-default: rgba(255, 255, 255, 0.1);
+          --bg-primary: #050816;
+          --bg-secondary: #0a0f24;
+          --bg-tertiary: #0f172a;
+          --surface: rgba(15, 23, 42, 0.50);
+          --surface-elevated: rgba(15, 23, 42, 0.70);
+          --border-subtle: rgba(255, 255, 255, 0.08);
+          --border-default: rgba(255, 255, 255, 0.12);
       }
-      .navbar {
-          background: rgba(5, 8, 17, 0.8) !important;
-          border-bottom: 1px solid var(--border-default) !important;
+      body {
+          background: #050816 !important;
+          color: #f8fafc;
       }
       .comp-grid {
           display: grid;
@@ -31,28 +32,31 @@
           margin-bottom: 2rem;
       }
       .available-comp-card {
-          background: var(--surface-elevated);
-          border: 1px solid var(--border-subtle);
+          background: rgba(15, 23, 42, 0.50);
+          border: 1px solid rgba(255, 255, 255, 0.10);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
           padding: 1.5rem;
-          border-radius: 12px;
+          border-radius: 16px;
           text-align: left;
           transition: 0.3s;
           display: flex;
           flex-direction: column;
+          box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
       }
       .available-comp-card:hover {
-          border-color: rgba(63, 128, 239, 0.4);
-          background: rgba(31, 41, 55, 0.8);
+          border-color: rgba(56, 189, 248, 0.4);
+          background: rgba(15, 23, 42, 0.70);
       }
       .available-comp-card h4 {
-          color: var(--text-primary);
+          color: #f8fafc;
           font-family: var(--font-body);
           font-weight: 600;
           font-size: 1.15rem;
           margin-bottom: 0.25rem;
       }
       .available-comp-card .desc {
-          color: var(--text-secondary);
+          color: #94a3b8;
           font-size: 0.85rem;
           margin-bottom: 1.25rem;
           line-height: 1.5;
@@ -64,7 +68,7 @@
           gap: 0.75rem;
           margin-bottom: 1.5rem;
           font-size: 0.8rem;
-          color: var(--text-tertiary);
+          color: #64748b;
       }
       .available-comp-card .meta div {
           display: flex;
@@ -78,47 +82,49 @@
           margin-top: auto;
       }
       .btn-dash-primary {
-          background: var(--accent-blue);
+          background: #2563eb;
           color: #fff;
           font-family: var(--font-body);
           font-size: 0.85rem;
-          font-weight: 500;
+          font-weight: 600;
           height: 42px;
           padding: 0 1.25rem;
-          border-radius: 6px;
+          border-radius: 10px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
           text-decoration: none;
-          transition: background 0.2s, transform 0.1s;
+          transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
           border: none;
           flex: 1;
           cursor: pointer;
+          box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
       }
       .btn-dash-primary:hover:not(:disabled) {
-          background: #2a6ed8;
+          background: #3b82f6;
           transform: translateY(-1px);
+          box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
       }
       .btn-dash-secondary {
-          background: transparent;
-          color: var(--text-secondary);
+          background: rgba(255, 255, 255, 0.05);
+          color: #94a3b8;
           font-family: var(--font-body);
           font-size: 0.85rem;
           font-weight: 500;
           height: 42px;
           padding: 0 1.25rem;
-          border-radius: 6px;
+          border-radius: 10px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
           text-decoration: none;
           transition: 0.2s;
-          border: 1px solid var(--border-default);
+          border: 1px solid rgba(255, 255, 255, 0.12);
       }
       .btn-dash-secondary:hover {
-          border-color: var(--text-primary);
-          color: var(--text-primary);
-          background: rgba(255,255,255,0.03);
+          border-color: rgba(255, 255, 255, 0.3);
+          color: #f8fafc;
+          background: rgba(255, 255, 255, 0.1);
       }
       @media (max-width: 640px) {
           .dash-action-row {
@@ -130,16 +136,16 @@
           }
       }
       .registration-block {
-          border: 1px solid var(--border-subtle);
-          border-radius: 12px;
+          border: 1px solid rgba(255, 255, 255, 0.10);
+          border-radius: 16px;
           overflow: hidden;
           margin-bottom: 2rem;
-          background: rgba(0,0,0,0.1);
+          background: rgba(15, 23, 42, 0.40);
       }
       .reg-header {
-          background: rgba(255,255,255,0.02);
+          background: rgba(255, 255, 255, 0.03);
           padding: 1rem 1.5rem;
-          border-bottom: 1px solid var(--border-subtle);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
           display: flex;
           justify-content: space-between;
           align-items: center;
@@ -147,7 +153,7 @@
       .reg-header h2 {
           font-family: var(--font-display);
           font-size: 1.2rem;
-          color: var(--accent-blue-light);
+          color: #38bdf8;
       }
       .reg-body {
           padding: 1.5rem;
@@ -158,30 +164,106 @@
   </style>
 </head>
 
-<body>
-  <!-- NAVBAR -->
-  <nav class="navbar" id="navbar" style="background: rgba(4, 10, 67, 0.95); backdrop-filter: blur(10px);">
-    <div class="nav-container">
-      <a href="{{ url('/') }}" class="nav-logo">
-        <img src="{{ asset('images/Logo.png') }}" alt="InnoElectrica Logo" style="height: 40px; width: auto; border-radius: 50%; margin-right: 8px;">
-        <span class="logo-text">IEE</span>
-        <span class="logo-year">2026</span>
+<body class="bg-[#050816] text-slate-100 min-h-screen">
+  <!-- FLOATING GLASS NAVBAR (100% Homepage Aligned) -->
+  <header class="sticky top-4 z-50 mx-auto max-w-6xl px-4 sm:px-6">
+    <nav class="rounded-2xl border border-white/15 bg-slate-900/40 backdrop-blur-xl px-5 sm:px-6 py-3.5 flex items-center justify-between shadow-[0_8px_32px_0_rgba(0,0,0,0.36),inset_0_1px_0_0_rgba(255,255,255,0.1)] relative" style="-webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);">
+      
+      <!-- Left: Brand Logo Lockup -->
+      <a href="{{ url('/') }}" class="flex items-center gap-3 group focus:outline-none focus:ring-2 focus:ring-cyan-400 rounded-xl" style="text-decoration: none;">
+        <div class="relative">
+          <img 
+            src="{{ asset('images/Logo.png') }}" 
+            alt="InnoElectrica Logo" 
+            class="h-9 w-9 rounded-full object-cover ring-2 ring-cyan-400/40 group-hover:ring-cyan-400 transition-all shadow-[0_0_15px_rgba(56,189,248,0.3)]"
+          />
+          <div class="absolute inset-0 rounded-full bg-cyan-400/10 pointer-events-none"></div>
+        </div>
+        <div class="flex flex-col">
+          <div class="flex items-center gap-1.5 leading-none">
+            <span class="font-['Orbitron'] font-extrabold text-base tracking-wider text-white">IEE</span>
+            <span class="font-['Orbitron'] font-black text-base text-[#FACC15]">2026</span>
+          </div>
+          <span class="font-['JetBrains_Mono'] text-[9px] uppercase tracking-widest text-slate-400 group-hover:text-slate-300 transition-colors">
+            IEEE SB UNRI
+          </span>
+        </div>
       </a>
-      <ul class="nav-links" id="navLinks">
-        <li><a href="{{ route('dashboard') }}" class="nav-link active">Dashboard</a></li>
-        <li><a href="{{ route('profile.edit') }}" class="nav-link">Profile</a></li>
-        <li>
-            <form method="POST" action="{{ route('logout') }}" style="display:inline;">
-                @csrf
-                <a href="#" class="nav-link nav-login" onclick="event.preventDefault(); this.closest('form').submit();">Logout</a>
-            </form>
-        </li>
-      </ul>
-      <div class="nav-hamburger" id="hamburger">
-        <span></span><span></span><span></span>
+
+      <!-- Center: Desktop Nav Links -->
+      <div class="hidden md:flex items-center gap-8">
+        <a href="{{ route('dashboard') }}" class="text-sm font-medium {{ request()->routeIs('dashboard') ? 'text-cyan-400' : 'text-slate-300 hover:text-cyan-400' }} transition-colors relative py-1 group" style="text-decoration: none;">
+          Dashboard
+          <span class="absolute bottom-0 left-0 {{ request()->routeIs('dashboard') ? 'w-full' : 'w-0 group-hover:w-full' }} h-[2px] bg-cyan-400 transition-all duration-200"></span>
+        </a>
+        <a href="{{ route('profile.edit') }}" class="text-sm font-medium {{ request()->routeIs('profile.edit') ? 'text-cyan-400' : 'text-slate-300 hover:text-cyan-400' }} transition-colors relative py-1 group" style="text-decoration: none;">
+          Profile
+          <span class="absolute bottom-0 left-0 {{ request()->routeIs('profile.edit') ? 'w-full' : 'w-0 group-hover:w-full' }} h-[2px] bg-cyan-400 transition-all duration-200"></span>
+        </a>
+        @if(Auth::user() && Auth::user()->isBackofficeUser())
+        <a href="{{ url('/admin') }}" class="text-sm font-medium text-slate-300 hover:text-cyan-400 transition-colors relative py-1 group" style="text-decoration: none;">
+          Admin Panel
+          <span class="absolute bottom-0 left-0 w-0 group-hover:w-full h-[2px] bg-cyan-400 transition-all duration-200"></span>
+        </a>
+        @endif
       </div>
-    </div>
-  </nav>
+
+      <!-- Right: Logout Action -->
+      <div class="hidden sm:flex items-center gap-4">
+        <form method="POST" action="{{ route('logout') }}" class="m-0 p-0">
+          @csrf
+          <button type="submit" class="bg-white/10 hover:bg-red-500/20 text-white hover:text-red-300 border border-white/15 hover:border-red-500/30 font-medium text-xs px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+            <span>Logout</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Mobile Hamburger Button -->
+      <button 
+        id="mobileMenuBtn"
+        type="button" 
+        class="md:hidden w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 backdrop-blur-md text-slate-300 hover:text-white flex items-center justify-center transition-all focus:outline-none shadow-sm cursor-pointer"
+        style="-webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);"
+        aria-label="Toggle navigation menu"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path id="hamburgerIcon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+      </button>
+
+      <!-- Mobile Dropdown Menu -->
+      <div id="mobileMenu" class="hidden absolute top-full left-0 right-0 mt-2 p-4 rounded-2xl border border-white/15 shadow-2xl flex-col gap-2 md:hidden z-50" style="background: #070d28 !important; box-shadow: 0 25px 50px -10px rgba(0,0,0,0.95), inset 0 1px 0 0 rgba(255,255,255,0.15);">
+        <a href="{{ route('dashboard') }}" class="text-sm font-medium {{ request()->routeIs('dashboard') ? 'text-cyan-400 bg-white/10' : 'text-slate-200 hover:text-cyan-400 hover:bg-white/5' }} px-4 py-3 rounded-xl transition-all flex items-center justify-between" style="text-decoration: none;">
+          <span>Dashboard</span>
+          @if(request()->routeIs('dashboard'))
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          @endif
+        </a>
+        <a href="{{ route('profile.edit') }}" class="text-sm font-medium {{ request()->routeIs('profile.edit') ? 'text-cyan-400 bg-white/10' : 'text-slate-200 hover:text-cyan-400 hover:bg-white/5' }} px-4 py-3 rounded-xl transition-all flex items-center justify-between" style="text-decoration: none;">
+          <span>Profile</span>
+          @if(request()->routeIs('profile.edit'))
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          @endif
+        </a>
+        @if(Auth::user() && Auth::user()->isBackofficeUser())
+        <a href="{{ url('/admin') }}" class="text-sm font-medium text-slate-200 hover:text-cyan-400 hover:bg-white/5 px-4 py-3 rounded-xl transition-all block" style="text-decoration: none;">
+          Admin Panel
+        </a>
+        @endif
+        <div class="pt-2 border-t border-white/10 mt-1">
+          <form method="POST" action="{{ route('logout') }}" class="m-0">
+            @csrf
+            <button type="submit" class="w-full text-center py-2.5 rounded-xl font-medium text-xs bg-white/10 hover:bg-red-500/20 text-white hover:text-red-300 border border-white/15 hover:border-red-500/30 transition-all flex items-center justify-center gap-2 cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+              <span>Logout</span>
+            </button>
+          </form>
+        </div>
+      </div>
+
+    </nav>
+  </header>
 
   <main class="dashboard-main">
     <div class="dash-container">
@@ -443,12 +525,26 @@
               @foreach($availableCompetitions as $comp)
               @php
                   $userReg = $latestRegistrations->where('competition_id', $comp->id)->first();
+                  $isOpen = $comp->isRegistrationOpen();
+                  $dashStatusBadge = match($comp->status) {
+                      'registration_open' => ['label' => 'OPEN', 'bg' => 'rgba(16, 185, 129, 0.12)', 'color' => '#10b981', 'border' => 'rgba(16, 185, 129, 0.25)'],
+                      'ongoing' => ['label' => 'ONGOING', 'bg' => 'rgba(56, 189, 248, 0.12)', 'color' => '#38bdf8', 'border' => 'rgba(56, 189, 248, 0.25)'],
+                      'completed' => ['label' => 'ENDED', 'bg' => 'rgba(148, 163, 184, 0.12)', 'color' => '#94a3b8', 'border' => 'rgba(148, 163, 184, 0.25)'],
+                      'upcoming' => ['label' => 'UPCOMING', 'bg' => 'rgba(251, 191, 36, 0.12)', 'color' => '#fbbf24', 'border' => 'rgba(251, 191, 36, 0.25)'],
+                      default => ['label' => 'CLOSED', 'bg' => 'rgba(244, 63, 94, 0.12)', 'color' => '#f43f5e', 'border' => 'rgba(244, 63, 94, 0.25)'],
+                  };
+                  $btnLabel = match($comp->status) {
+                      'completed' => 'Competition Ended',
+                      'ongoing' => 'Ongoing',
+                      'upcoming' => 'Coming Soon',
+                      default => 'Registration Closed',
+                  };
               @endphp
               <div class="available-comp-card">
-                  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; gap: 0.5rem;">
                       <h4>{{ $comp->name }}</h4>
-                      <span style="font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.5rem; border-radius: 4px; background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2);">
-                          {{ $comp->status === 'registration_open' ? 'OPEN' : 'CLOSED' }}
+                      <span style="font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.55rem; border-radius: 6px; background: {{ $dashStatusBadge['bg'] }}; color: {{ $dashStatusBadge['color'] }}; border: 1px solid {{ $dashStatusBadge['border'] }}; letter-spacing: 0.5px; flex-shrink: 0;">
+                          {{ $dashStatusBadge['label'] }}
                       </span>
                   </div>
                   
@@ -467,7 +563,11 @@
                   
                   <div class="dash-action-row">
                       <a href="{{ route('competition.show', $comp->slug) }}" class="btn-dash-secondary">View Details &nbsp;<i class="fi fi-rr-arrow-small-right"></i></a>
-                      @if(!$userReg)
+                      @if(! $isOpen)
+                          <button disabled class="btn-dash-primary disabled-btn" style="opacity: 0.6; cursor: not-allowed; background: rgba(255, 255, 255, 0.05); color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.1);">
+                              {{ $btnLabel }}
+                          </button>
+                      @elseif(!$userReg)
                           <a href="{{ route('competition.register', $comp->slug) }}" class="btn-dash-primary">Register Now</a>
                       @elseif(in_array($userReg->status, ['rejected', 'cancelled']))
                           <a href="{{ route('competition.register', $comp->slug) }}" class="btn-dash-primary">Register Again</a>
@@ -514,6 +614,28 @@
 
   <script src="{{ asset('js/script.js') }}"></script>
   <script>
+      // Mobile menu toggle
+      const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+      const mobileMenu = document.getElementById('mobileMenu');
+      const hamburgerIcon = document.getElementById('hamburgerIcon');
+
+      if (mobileMenuBtn && mobileMenu) {
+          mobileMenuBtn.addEventListener('click', () => {
+              const isHidden = mobileMenu.classList.toggle('hidden');
+              if (!isHidden) {
+                  mobileMenu.classList.add('flex');
+                  if (hamburgerIcon) {
+                      hamburgerIcon.setAttribute('d', 'M6 18L18 6M6 6l12 12');
+                  }
+              } else {
+                  mobileMenu.classList.remove('flex');
+                  if (hamburgerIcon) {
+                      hamburgerIcon.setAttribute('d', 'M4 6h16M4 12h16M4 18h16');
+                  }
+              }
+          });
+      }
+
       // Dashboard Countdown Logic
       document.addEventListener('DOMContentLoaded', () => {
           const cdEls = document.querySelectorAll('.dash-countdown');

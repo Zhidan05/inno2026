@@ -3,23 +3,24 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserRole;
 use Database\Factories\UserFactory;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
-use Filament\Models\Contracts\FilamentUser;
-use Filament\Panel;
-use App\Enums\UserRole;
 
 #[Fillable(['name', 'nim', 'email', 'phone', 'institution', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, HasRoles, Notifiable;
 
     /**
      * Get the attributes that should be cast.
@@ -39,7 +40,7 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(Registration::class);
     }
 
-    public function judgedCompetitions(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function judgedCompetitions(): BelongsToMany
     {
         return $this->belongsToMany(Competition::class, 'competition_judge');
     }

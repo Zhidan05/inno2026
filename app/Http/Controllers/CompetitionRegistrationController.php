@@ -7,7 +7,6 @@ use App\Models\Registration;
 use App\Models\TeamMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class CompetitionRegistrationController extends Controller
@@ -20,13 +19,12 @@ class CompetitionRegistrationController extends Controller
         }
 
         // Check if registration is open
-        if ($competition->status !== 'registration_open') {
-            return redirect()->route('dashboard')->with('error', 'Registration for this competition is currently closed.');
-        }
+        if (! $competition->isRegistrationOpen()) {
+            $msg = $competition->isEnded()
+                ? 'This competition has ended.'
+                : 'Registration for this competition is currently closed.';
 
-        // Check deadline
-        if ($competition->registration_close_at && now()->isAfter($competition->registration_close_at)) {
-            return redirect()->route('dashboard')->with('error', 'The registration deadline has passed.');
+            return redirect()->route('dashboard')->with('error', $msg);
         }
 
         // Check if already registered with an active status
@@ -48,8 +46,12 @@ class CompetitionRegistrationController extends Controller
         }
 
         // Check if registration is open
-        if ($competition->status !== 'registration_open') {
-            return back()->withErrors(['competition' => 'Registration is closed.']);
+        if (! $competition->isRegistrationOpen()) {
+            $msg = $competition->isEnded()
+                ? 'This competition has ended.'
+                : 'Registration is closed.';
+
+            return back()->withErrors(['competition' => $msg]);
         }
 
         if (Registration::where('user_id', Auth::id())
@@ -72,18 +74,18 @@ class CompetitionRegistrationController extends Controller
             if ($competition->registration_type === 'individual') {
                 return back()->withErrors(['registration_mode' => 'This competition is for individuals only.']);
             }
-            
+
             $rules['team_name'] = [
                 'required',
                 'string',
                 'max:255',
                 Rule::unique('registrations')->where(function ($query) use ($competition) {
                     return $query->where('competition_id', $competition->id);
-                })
+                }),
             ];
 
             // Validate team members
-            $rules['members'] = ['array', 'max:' . ($competition->max_team_members - 1)];
+            $rules['members'] = ['array', 'max:'.($competition->max_team_members - 1)];
             $rules['members.*.name'] = ['required', 'string', 'max:255'];
             $rules['members.*.nim'] = ['required', 'string', 'max:50'];
         } else {
@@ -127,4 +129,3 @@ class CompetitionRegistrationController extends Controller
         return redirect()->route('dashboard')->with('success', 'Registration submitted successfully! Waiting for verification.');
     }
 }
-

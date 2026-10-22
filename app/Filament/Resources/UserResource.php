@@ -2,25 +2,30 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\UserRole;
 use App\Filament\Resources\UserResource\Pages;
-use Illuminate\Validation\Rule;
 use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Infolists;
-use Filament\Infolists\Infolist;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-user';
+
     protected static ?string $navigationGroup = 'MANAGEMENT';
+
     protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
@@ -33,7 +38,7 @@ class UserResource extends Resource
                 Forms\Components\TextInput::make('nim')
                     ->label('NIM')
                     ->maxLength(30)
-                    ->required(fn (Forms\Get $get): bool => $get('role') === \App\Enums\UserRole::PARTICIPANT->value)
+                    ->required(fn (Forms\Get $get): bool => $get('role') === UserRole::PARTICIPANT->value)
                     ->rules(fn (?User $record) => [
                         Rule::unique('users', 'nim')->ignore($record?->id),
                     ]),
@@ -44,10 +49,10 @@ class UserResource extends Resource
                 Forms\Components\Select::make('role')
                     ->label('Role')
                     ->options([
-                        \App\Enums\UserRole::ADMIN->value => \App\Enums\UserRole::ADMIN->label(),
-                        \App\Enums\UserRole::MODERATOR->value => \App\Enums\UserRole::MODERATOR->label(),
-                        \App\Enums\UserRole::JUDGE->value => \App\Enums\UserRole::JUDGE->label(),
-                        \App\Enums\UserRole::PARTICIPANT->value => \App\Enums\UserRole::PARTICIPANT->label(),
+                        UserRole::ADMIN->value => UserRole::ADMIN->label(),
+                        UserRole::MODERATOR->value => UserRole::MODERATOR->label(),
+                        UserRole::JUDGE->value => UserRole::JUDGE->label(),
+                        UserRole::PARTICIPANT->value => UserRole::PARTICIPANT->label(),
                     ])
                     ->afterStateHydrated(function (Forms\Components\Select $component, ?User $record) {
                         if ($record && $record->exists) {
@@ -56,20 +61,20 @@ class UserResource extends Resource
                     })
                     ->saveRelationshipsUsing(function (User $record, $state) {
                         $currentUser = auth()->user();
-                        if ($currentUser && $currentUser->hasRole(\App\Enums\UserRole::ADMIN->value)) {
-                            if ($record->hasRole(\App\Enums\UserRole::ADMIN->value) && $state !== \App\Enums\UserRole::ADMIN->value) {
-                                if (\App\Models\User::role(\App\Enums\UserRole::ADMIN->value)->count() <= 1) {
-                                    throw \Illuminate\Validation\ValidationException::withMessages(['role' => 'At least one Admin account must remain active.']);
+                        if ($currentUser && $currentUser->hasRole(UserRole::ADMIN->value)) {
+                            if ($record->hasRole(UserRole::ADMIN->value) && $state !== UserRole::ADMIN->value) {
+                                if (User::role(UserRole::ADMIN->value)->count() <= 1) {
+                                    throw ValidationException::withMessages(['role' => 'At least one Admin account must remain active.']);
                                 }
                             }
                             $record->syncRoles([$state]);
-                        } else if ($currentUser && $currentUser->hasRole(\App\Enums\UserRole::MODERATOR->value)) {
-                            $record->syncRoles([\App\Enums\UserRole::PARTICIPANT->value]);
+                        } elseif ($currentUser && $currentUser->hasRole(UserRole::MODERATOR->value)) {
+                            $record->syncRoles([UserRole::PARTICIPANT->value]);
                         }
                     })
                     ->dehydrated(false)
-                    ->disabled(fn () => !auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value))
-                    ->default(fn () => auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value) ? null : \App\Enums\UserRole::PARTICIPANT->value)
+                    ->disabled(fn () => ! auth()->user()?->hasRole(UserRole::ADMIN->value))
+                    ->default(fn () => auth()->user()?->hasRole(UserRole::ADMIN->value) ? null : UserRole::PARTICIPANT->value)
                     ->required(),
                 Forms\Components\TextInput::make('password')
                     ->password()
@@ -100,17 +105,17 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('roles.name')
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        \App\Enums\UserRole::ADMIN->value => \App\Enums\UserRole::ADMIN->label(),
-                        \App\Enums\UserRole::MODERATOR->value => \App\Enums\UserRole::MODERATOR->label(),
-                        \App\Enums\UserRole::JUDGE->value => \App\Enums\UserRole::JUDGE->label(),
-                        \App\Enums\UserRole::PARTICIPANT->value => \App\Enums\UserRole::PARTICIPANT->label(),
+                        UserRole::ADMIN->value => UserRole::ADMIN->label(),
+                        UserRole::MODERATOR->value => UserRole::MODERATOR->label(),
+                        UserRole::JUDGE->value => UserRole::JUDGE->label(),
+                        UserRole::PARTICIPANT->value => UserRole::PARTICIPANT->label(),
                         default => ucfirst($state),
                     })
                     ->colors([
-                        'warning' => \App\Enums\UserRole::ADMIN->value,
-                        'info' => \App\Enums\UserRole::MODERATOR->value,
-                        'primary' => \App\Enums\UserRole::JUDGE->value,
-                        'gray' => \App\Enums\UserRole::PARTICIPANT->value,
+                        'warning' => UserRole::ADMIN->value,
+                        'info' => UserRole::MODERATOR->value,
+                        'primary' => UserRole::JUDGE->value,
+                        'gray' => UserRole::PARTICIPANT->value,
                     ]),
                 Tables\Columns\TextColumn::make('registrations_count')
                     ->counts('registrations')
@@ -136,7 +141,7 @@ class UserResource extends Resource
                     Tables\Actions\BulkAction::make('export_csv')
                         ->label('Export CSV')
                         ->icon('heroicon-o-document-arrow-down')
-                        ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
+                        ->action(function (Collection $records) {
                             return response()->streamDownload(function () use ($records) {
                                 $handle = fopen('php://output', 'w');
                                 fputcsv($handle, ['ID', 'Name', 'NIM', 'Email', 'Phone', 'Institution', 'Joined At']);
@@ -154,9 +159,9 @@ class UserResource extends Resource
                                 fclose($handle);
                             }, 'users_export.csv');
                         })
-                        ->visible(fn () => auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
+                        ->visible(fn () => auth()->user()?->hasRole(UserRole::ADMIN->value)),
                     Tables\Actions\DeleteBulkAction::make()
-                        ->visible(fn () => auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
+                        ->visible(fn () => auth()->user()?->hasRole(UserRole::ADMIN->value)),
                 ]),
             ]);
     }
@@ -175,17 +180,17 @@ class UserResource extends Resource
                         Infolists\Components\TextEntry::make('roles.name')
                             ->badge()
                             ->formatStateUsing(fn (string $state): string => match ($state) {
-                                \App\Enums\UserRole::ADMIN->value => \App\Enums\UserRole::ADMIN->label(),
-                                \App\Enums\UserRole::MODERATOR->value => \App\Enums\UserRole::MODERATOR->label(),
-                                \App\Enums\UserRole::JUDGE->value => \App\Enums\UserRole::JUDGE->label(),
-                                \App\Enums\UserRole::PARTICIPANT->value => \App\Enums\UserRole::PARTICIPANT->label(),
+                                UserRole::ADMIN->value => UserRole::ADMIN->label(),
+                                UserRole::MODERATOR->value => UserRole::MODERATOR->label(),
+                                UserRole::JUDGE->value => UserRole::JUDGE->label(),
+                                UserRole::PARTICIPANT->value => UserRole::PARTICIPANT->label(),
                                 default => ucfirst($state),
                             })
                             ->colors([
-                                'warning' => \App\Enums\UserRole::ADMIN->value,
-                                'info' => \App\Enums\UserRole::MODERATOR->value,
-                                'primary' => \App\Enums\UserRole::JUDGE->value,
-                                'gray' => \App\Enums\UserRole::PARTICIPANT->value,
+                                'warning' => UserRole::ADMIN->value,
+                                'info' => UserRole::MODERATOR->value,
+                                'primary' => UserRole::JUDGE->value,
+                                'gray' => UserRole::PARTICIPANT->value,
                             ]),
                         Infolists\Components\TextEntry::make('created_at')
                             ->dateTime('d M Y, H:i'),
@@ -231,6 +236,6 @@ class UserResource extends Resource
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->hasRole([\App\Enums\UserRole::ADMIN->value, \App\Enums\UserRole::MODERATOR->value]) ?? false;
+        return auth()->user()?->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value]) ?? false;
     }
 }

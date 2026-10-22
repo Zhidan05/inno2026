@@ -2,18 +2,16 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\UserRole;
 use App\Filament\Resources\ParticipantResource\Pages;
-use App\Filament\Resources\ParticipantResource\RelationManagers;
 use App\Models\Registration;
-use App\Models\Ticket;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Infolists;
-use Filament\Infolists\Infolist;
-use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Builder;
 
 class ParticipantResource extends Resource
@@ -21,14 +19,18 @@ class ParticipantResource extends Resource
     protected static ?string $model = Registration::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
+
     protected static ?string $navigationLabel = 'Participants';
+
     protected static ?string $navigationGroup = 'MANAGEMENT';
-    
+
     public static function canAccess(): bool
     {
         $user = auth()->user();
-        return $user && $user->hasRole([\App\Enums\UserRole::ADMIN->value, \App\Enums\UserRole::MODERATOR->value]);
+
+        return $user && $user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value]);
     }
+
     protected static ?int $navigationSort = 2;
 
     public static function getEloquentQuery(): Builder
@@ -48,22 +50,22 @@ class ParticipantResource extends Resource
                 Forms\Components\Select::make('competition_id')
                     ->relationship('competition', 'name')
                     ->required()
-                    ->disabled(fn () => !auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
+                    ->disabled(fn () => ! auth()->user()?->hasRole(UserRole::ADMIN->value)),
                 Forms\Components\Select::make('user_id')
                     ->relationship('user', 'name')
                     ->label('Account Owner')
                     ->required()
-                    ->disabled(fn () => !auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
+                    ->disabled(fn () => ! auth()->user()?->hasRole(UserRole::ADMIN->value)),
                 Forms\Components\Select::make('registration_mode')
                     ->options([
                         'solo' => 'Solo',
                         'team' => 'Team',
                     ])
                     ->required()
-                    ->disabled(fn () => !auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
+                    ->disabled(fn () => ! auth()->user()?->hasRole(UserRole::ADMIN->value)),
                 Forms\Components\TextInput::make('team_name')
                     ->maxLength(255)
-                    ->disabled(fn () => !auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
+                    ->disabled(fn () => ! auth()->user()?->hasRole(UserRole::ADMIN->value)),
                 Forms\Components\Select::make('status')
                     ->options([
                         'pending' => 'Pending Review',
@@ -72,15 +74,17 @@ class ParticipantResource extends Resource
                         'revision_required' => 'Revision Required',
                     ])
                     ->required()
-                    ->disabled(fn () => !auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
+                    ->disabled(fn () => ! auth()->user()?->hasRole(UserRole::ADMIN->value)),
                 Forms\Components\TextInput::make('grade')
+                    ->label('Score (0 - 100)')
                     ->numeric()
+                    ->minValue(0)
+                    ->maxValue(100)
                     ->step('0.01')
-                    ->label('Score')
-                    ->visible(fn () => auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
+                    ->visible(fn () => auth()->user()?->hasRole(UserRole::ADMIN->value)),
                 Forms\Components\Textarea::make('verification_notes')
                     ->label('Verification Notes')
-                    ->disabled(fn () => !auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
+                    ->disabled(fn () => ! auth()->user()?->hasRole(UserRole::ADMIN->value)),
             ]);
     }
 
@@ -129,15 +133,21 @@ class ParticipantResource extends Resource
                 Tables\Columns\TextColumn::make('proof_of_payment')
                     ->label('Payment Proof')
                     ->formatStateUsing(function (?string $state, Registration $record) {
-                        if ($record->competition->isFree()) return 'FREE';
+                        if ($record->competition->isFree()) {
+                            return 'FREE';
+                        }
+
                         return $state ? 'Available' : 'Missing';
                     })
                     ->badge()
                     ->color(function (?string $state, Registration $record) {
-                        if ($record->competition->isFree()) return 'success';
+                        if ($record->competition->isFree()) {
+                            return 'success';
+                        }
+
                         return $state ? 'success' : 'danger';
                     })
-                    ->url(fn (Registration $record) => $record->proof_of_payment ? asset('storage/' . $record->proof_of_payment) : null)
+                    ->url(fn (Registration $record) => $record->proof_of_payment ? asset('storage/'.$record->proof_of_payment) : null)
                     ->openUrlInNewTab(),
                 Tables\Columns\TextColumn::make('ticket.ticket_code')
                     ->label('Ticket')
@@ -170,12 +180,12 @@ class ParticipantResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make()
-                    ->visible(fn () => auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
+                    ->visible(fn () => auth()->user()?->hasRole(UserRole::ADMIN->value)),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->visible(fn () => auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
+                        ->visible(fn () => auth()->user()?->hasRole(UserRole::ADMIN->value)),
                 ]),
             ]);
     }
@@ -236,7 +246,7 @@ class ParticipantResource extends Resource
                 Infolists\Components\Section::make('TEAM MEMBERS')
                     ->schema([
                         Infolists\Components\ViewEntry::make('members')
-                            ->view('filament.infolists.entries.team-members-list')
+                            ->view('filament.infolists.entries.team-members-list'),
                     ]),
 
                 Infolists\Components\Section::make('PAYMENT')
@@ -244,7 +254,10 @@ class ParticipantResource extends Resource
                         Infolists\Components\TextEntry::make('proof_of_payment')
                             ->label('Payment Proof')
                             ->formatStateUsing(function (?string $state, Registration $record) {
-                                if ($record->competition->isFree()) return 'Not Required';
+                                if ($record->competition->isFree()) {
+                                    return 'Not Required';
+                                }
+
                                 return $state ? 'Available' : 'Missing';
                             }),
                         Infolists\Components\TextEntry::make('status')

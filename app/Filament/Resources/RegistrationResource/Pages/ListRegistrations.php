@@ -2,8 +2,11 @@
 
 namespace App\Filament\Resources\RegistrationResource\Pages;
 
+use App\Enums\UserRole;
 use App\Filament\Resources\RegistrationResource;
+use App\Models\Registration;
 use Filament\Actions;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\ListRecords;
 
 class ListRegistrations extends ListRecords
@@ -13,14 +16,14 @@ class ListRegistrations extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            \Filament\Actions\Action::make('export_csv')
+            Action::make('export_csv')
                 ->label('Export CSV')
                 ->icon('heroicon-o-document-arrow-down')
                 ->action(function () {
                     return response()->streamDownload(function () {
                         $handle = fopen('php://output', 'w');
                         fputcsv($handle, ['ID', 'Competition', 'Team Leader', 'Team Name', 'Status', 'Grade', 'Rank', 'Registered At']);
-                        foreach (\App\Models\Registration::with(['competition', 'user'])->get() as $record) {
+                        foreach (Registration::with(['competition', 'user'])->get() as $record) {
                             fputcsv($handle, [
                                 $record->id,
                                 $record->competition->name ?? '',
@@ -35,7 +38,7 @@ class ListRegistrations extends ListRecords
                         fclose($handle);
                     }, 'registrations_export.csv');
                 })
-                ->visible(fn () => auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
+                ->visible(fn () => auth()->user()?->hasRole(UserRole::ADMIN->value)),
             Actions\CreateAction::make(),
         ];
     }

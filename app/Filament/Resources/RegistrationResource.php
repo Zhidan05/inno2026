@@ -2,20 +2,23 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\UserRole;
 use App\Filament\Resources\RegistrationResource\Pages;
 use App\Filament\Resources\RegistrationResource\RelationManagers;
 use App\Models\Registration;
 use App\Models\Ticket;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Table;
 use Filament\Tables\Actions\Action;
-use Illuminate\Support\Str;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use App\Enums\UserRole;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class RegistrationResource extends Resource
 {
@@ -26,7 +29,7 @@ class RegistrationResource extends Resource
     public static function getNavigationLabel(): string
     {
         $user = auth()->user();
-        if ($user && $user->hasRole(UserRole::JUDGE->value) && !$user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
+        if ($user && $user->hasRole(UserRole::JUDGE->value) && ! $user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
             return 'Scoring';
         }
 
@@ -36,7 +39,7 @@ class RegistrationResource extends Resource
     public static function getNavigationGroup(): ?string
     {
         $user = auth()->user();
-        if ($user && $user->hasRole(UserRole::JUDGE->value) && !$user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
+        if ($user && $user->hasRole(UserRole::JUDGE->value) && ! $user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
             return 'JUDGING';
         }
 
@@ -46,7 +49,7 @@ class RegistrationResource extends Resource
     public static function getNavigationSort(): ?int
     {
         $user = auth()->user();
-        if ($user && $user->hasRole(UserRole::JUDGE->value) && !$user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
+        if ($user && $user->hasRole(UserRole::JUDGE->value) && ! $user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
             return 2;
         }
 
@@ -56,7 +59,7 @@ class RegistrationResource extends Resource
     public static function canViewAny(): bool
     {
         $user = auth()->user();
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -70,11 +73,11 @@ class RegistrationResource extends Resource
     public static function canView(Model $record): bool
     {
         $user = auth()->user();
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
-        if ($user->hasRole(UserRole::JUDGE->value) && !$user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
+        if ($user->hasRole(UserRole::JUDGE->value) && ! $user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
             return $record->competition->judges()->where('users.id', $user->id)->exists();
         }
 
@@ -84,11 +87,11 @@ class RegistrationResource extends Resource
     public static function canEdit(Model $record): bool
     {
         $user = auth()->user();
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
-        if ($user->hasRole(UserRole::JUDGE->value) && !$user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
+        if ($user->hasRole(UserRole::JUDGE->value) && ! $user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
             return false; // Judge uses Score action
         }
 
@@ -98,7 +101,7 @@ class RegistrationResource extends Resource
     public static function canCreate(): bool
     {
         $user = auth()->user();
-        if ($user && $user->hasRole(UserRole::JUDGE->value) && !$user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
+        if ($user && $user->hasRole(UserRole::JUDGE->value) && ! $user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
             return false;
         }
 
@@ -108,7 +111,7 @@ class RegistrationResource extends Resource
     public static function canDelete(Model $record): bool
     {
         $user = auth()->user();
-        if ($user && $user->hasRole(UserRole::JUDGE->value) && !$user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
+        if ($user && $user->hasRole(UserRole::JUDGE->value) && ! $user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
             return false;
         }
 
@@ -150,7 +153,10 @@ class RegistrationResource extends Resource
                     ->label('Verification Notes (if rejected or needs attention)')
                     ->visible(fn () => auth()->user()?->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])),
                 Forms\Components\TextInput::make('grade')
+                    ->label('Grade / Score (0 - 100)')
                     ->numeric()
+                    ->minValue(0)
+                    ->maxValue(100)
                     ->step('0.01')
                     ->nullable()
                     ->visible(fn () => auth()->user()?->hasRole([UserRole::ADMIN->value, UserRole::JUDGE->value])),
@@ -199,21 +205,27 @@ class RegistrationResource extends Resource
                 Tables\Columns\TextColumn::make('submission_file_path')
                     ->label('File')
                     ->formatStateUsing(fn ($state) => $state ? 'Download' : '-')
-                    ->url(fn ($record) => $record->submission_file_path ? \Illuminate\Support\Facades\Storage::url($record->submission_file_path) : null)
+                    ->url(fn ($record) => $record->submission_file_path ? Storage::url($record->submission_file_path) : null)
                     ->openUrlInNewTab()
                     ->visible(fn () => auth()->user()?->hasRole([UserRole::ADMIN->value, UserRole::JUDGE->value])),
                 Tables\Columns\TextColumn::make('proof_of_payment')
                     ->label('Payment Proof')
                     ->formatStateUsing(function (?string $state, Registration $record) {
-                        if ($record->competition->isFree()) return 'Not Required';
+                        if ($record->competition->isFree()) {
+                            return 'Not Required';
+                        }
+
                         return $state ? 'Available' : 'Missing';
                     })
                     ->badge()
                     ->color(function (?string $state, Registration $record) {
-                        if ($record->competition->isFree()) return 'gray';
+                        if ($record->competition->isFree()) {
+                            return 'gray';
+                        }
+
                         return $state ? 'success' : 'danger';
                     })
-                    ->url(fn (Registration $record) => $record->proof_of_payment ? asset('storage/' . $record->proof_of_payment) : null)
+                    ->url(fn (Registration $record) => $record->proof_of_payment ? asset('storage/'.$record->proof_of_payment) : null)
                     ->openUrlInNewTab()
                     ->visible(fn () => auth()->user()?->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])),
                 Tables\Columns\TextColumn::make('created_at')
@@ -243,14 +255,14 @@ class RegistrationResource extends Resource
                             'verified_at' => now(),
                         ]);
 
-                        if (!$record->ticket) {
+                        if (! $record->ticket) {
                             $ticket = Ticket::create([
                                 'registration_id' => $record->id,
-                                'ticket_code' => 'TKT-' . strtoupper(Str::random(8)),
+                                'ticket_code' => 'TKT-'.strtoupper(Str::random(8)),
                             ]);
                         }
 
-                        \Filament\Notifications\Notification::make()
+                        Notification::make()
                             ->title('Payment Approved & Ticket Generated')
                             ->success()
                             ->send();
@@ -296,8 +308,10 @@ class RegistrationResource extends Resource
                     ->color('primary')
                     ->form([
                         Forms\Components\TextInput::make('grade')
-                            ->label('Grade / Score')
+                            ->label('Grade / Score (0 - 100)')
                             ->numeric()
+                            ->minValue(0)
+                            ->maxValue(100)
                             ->step('0.01')
                             ->required(),
                     ])
@@ -306,7 +320,7 @@ class RegistrationResource extends Resource
                             'grade' => $data['grade'],
                             'scored_by' => auth()->id(),
                         ]);
-                        \Filament\Notifications\Notification::make()
+                        Notification::make()
                             ->title('Score updated successfully')
                             ->success()
                             ->send();
@@ -318,7 +332,7 @@ class RegistrationResource extends Resource
                     Tables\Actions\BulkAction::make('export_csv')
                         ->label('Export CSV')
                         ->icon('heroicon-o-document-arrow-down')
-                        ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
+                        ->action(function (Collection $records) {
                             return response()->streamDownload(function () use ($records) {
                                 $handle = fopen('php://output', 'w');
                                 fputcsv($handle, ['ID', 'Competition', 'Team Leader', 'Team Name', 'Status', 'Grade', 'Rank', 'Registered At']);
@@ -362,9 +376,9 @@ class RegistrationResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
-        
+
         $user = auth()->user();
-        if ($user && $user->hasRole(UserRole::JUDGE->value) && !$user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
+        if ($user && $user->hasRole(UserRole::JUDGE->value) && ! $user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
             $query->whereHas('competition.judges', function ($q) use ($user) {
                 $q->where('users.id', $user->id);
             });

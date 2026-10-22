@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Registration;
 use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -17,8 +18,8 @@ class ProfileUpdateRequest extends FormRequest
     public function rules(): array
     {
         $user = $this->user();
-        
-        $registration = \App\Models\Registration::where('user_id', $user->id)->first();
+
+        $registration = Registration::where('user_id', $user->id)->first();
         if ($registration && $registration->status === 'approved') {
             return [];
         }
@@ -44,4 +45,3 @@ class ProfileUpdateRequest extends FormRequest
         ];
     }
 }
-
