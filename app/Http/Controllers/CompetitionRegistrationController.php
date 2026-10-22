@@ -20,13 +20,12 @@ class CompetitionRegistrationController extends Controller
         }
 
         // Check if registration is open
-        if ($competition->status !== 'registration_open') {
-            return redirect()->route('dashboard')->with('error', 'Registration for this competition is currently closed.');
-        }
+        if (! $competition->isRegistrationOpen()) {
+            $msg = $competition->isEnded()
+                ? 'This competition has ended.'
+                : 'Registration for this competition is currently closed.';
 
-        // Check deadline
-        if ($competition->registration_close_at && now()->isAfter($competition->registration_close_at)) {
-            return redirect()->route('dashboard')->with('error', 'The registration deadline has passed.');
+            return redirect()->route('dashboard')->with('error', $msg);
         }
 
         // Check if already registered with an active status
@@ -48,8 +47,12 @@ class CompetitionRegistrationController extends Controller
         }
 
         // Check if registration is open
-        if ($competition->status !== 'registration_open') {
-            return back()->withErrors(['competition' => 'Registration is closed.']);
+        if (! $competition->isRegistrationOpen()) {
+            $msg = $competition->isEnded()
+                ? 'This competition has ended.'
+                : 'Registration is closed.';
+
+            return back()->withErrors(['competition' => $msg]);
         }
 
         if (Registration::where('user_id', Auth::id())

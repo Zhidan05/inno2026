@@ -13,6 +13,7 @@ use App\Models\Sponsor;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
+    Competition::syncAllStatuses();
     $competitions = Competition::whereNotIn('status', ['draft', 'inactive'])->get();
     $galleries = Gallery::orderBy('sort_order')->get();
     $sponsors = Sponsor::orderBy('sort_order')->get();

@@ -74,9 +74,11 @@ class ParticipantResource extends Resource
                     ->required()
                     ->disabled(fn () => !auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
                 Forms\Components\TextInput::make('grade')
+                    ->label('Score (0 - 100)')
                     ->numeric()
+                    ->minValue(0)
+                    ->maxValue(100)
                     ->step('0.01')
-                    ->label('Score')
                     ->visible(fn () => auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
                 Forms\Components\Textarea::make('verification_notes')
                     ->label('Verification Notes')

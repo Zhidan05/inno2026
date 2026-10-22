@@ -23,6 +23,17 @@ class ViewCompetition extends ViewRecord
                             ->weight('bold'),
                         Infolists\Components\TextEntry::make('status')
                             ->badge()
+                            ->formatStateUsing(fn (string $state): string => match ($state) {
+                                'registration_open' => 'Registration Open',
+                                'registration_closed' => 'Registration Closed',
+                                'upcoming' => 'Upcoming',
+                                'ongoing' => 'Ongoing',
+                                'completed' => 'Completed',
+                                'results_published' => 'Results Published',
+                                'draft' => 'Draft',
+                                'inactive' => 'Inactive',
+                                default => ucfirst(str_replace('_', ' ', $state)),
+                            })
                             ->colors([
                                 'secondary' => 'draft',
                                 'success' => fn ($state) => in_array($state, ['registration_open', 'results_published']),

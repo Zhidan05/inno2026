@@ -150,7 +150,10 @@ class RegistrationResource extends Resource
                     ->label('Verification Notes (if rejected or needs attention)')
                     ->visible(fn () => auth()->user()?->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])),
                 Forms\Components\TextInput::make('grade')
+                    ->label('Grade / Score (0 - 100)')
                     ->numeric()
+                    ->minValue(0)
+                    ->maxValue(100)
                     ->step('0.01')
                     ->nullable()
                     ->visible(fn () => auth()->user()?->hasRole([UserRole::ADMIN->value, UserRole::JUDGE->value])),
@@ -296,8 +299,10 @@ class RegistrationResource extends Resource
                     ->color('primary')
                     ->form([
                         Forms\Components\TextInput::make('grade')
-                            ->label('Grade / Score')
+                            ->label('Grade / Score (0 - 100)')
                             ->numeric()
+                            ->minValue(0)
+                            ->maxValue(100)
                             ->step('0.01')
                             ->required(),
                     ])

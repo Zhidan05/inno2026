@@ -53,9 +53,12 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 \Filament\View\PanelsRenderHook::HEAD_END,
                 fn (): string => '<style>
-                    .dark .fi-sidebar { background-color: #0b1120 !important; }
-                    .dark .fi-main { background-color: #030712 !important; }
-                    .dark .fi-topbar { background-color: #0b1120 !important; border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important; }
+                    body, .fi-body { background-color: #050816 !important; }
+                    .dark .fi-main { background-color: #050816 !important; }
+                    .dark .fi-sidebar { background-color: rgba(10, 15, 30, 0.92) !important; border-right: 1px solid rgba(255, 255, 255, 0.08) !important; backdrop-filter: blur(16px) !important; -webkit-backdrop-filter: blur(16px) !important; }
+                    .dark .fi-topbar { background-color: rgba(15, 23, 42, 0.45) !important; border-bottom: 1px solid rgba(255, 255, 255, 0.10) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36) !important; }
+                    .dark .fi-topbar nav { background: transparent !important; }
+                    .dark .fi-section, .dark .fi-wi-stats-overview-stat, .dark .fi-ta-ctn { background-color: rgba(15, 23, 42, 0.50) !important; border: 1px solid rgba(255, 255, 255, 0.10) !important; backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important; border-radius: 1rem !important; }
                 </style>'
             )
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')

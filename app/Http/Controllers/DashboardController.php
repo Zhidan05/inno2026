@@ -38,8 +38,11 @@ class DashboardController extends Controller
             
         $registeredCompIds = $latestRegistrations->pluck('competition_id')->toArray();
         
-        // Fetch ALL open competitions (the view will adapt the buttons based on registration state)
-        $availableCompetitions = Competition::where('status', 'registration_open')->get();
+        // Sync competition statuses according to timeline rules
+        Competition::syncAllStatuses();
+
+        // Fetch competitions (the view will adapt the buttons based on registration state)
+        $availableCompetitions = Competition::whereNotIn('status', ['draft', 'inactive'])->get();
         
         // Fetch relevant announcements
         $announcementQuery = Announcement::whereNotNull('published_at')

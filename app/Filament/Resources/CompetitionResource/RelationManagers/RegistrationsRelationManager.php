@@ -119,8 +119,10 @@ class RegistrationsRelationManager extends RelationManager
                     ->color('primary')
                     ->form([
                         Forms\Components\TextInput::make('grade')
-                            ->label('Grade / Score')
+                            ->label('Grade / Score (0 - 100)')
                             ->numeric()
+                            ->minValue(0)
+                            ->maxValue(100)
                             ->step('0.01')
                             ->required(),
                     ])

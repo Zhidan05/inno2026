@@ -22,6 +22,10 @@ class SubmissionController extends Controller
 
         $competition = $registration->competition;
 
+        if ($competition->isEnded()) {
+            return back()->with('error', 'This competition has ended. Submissions are no longer accepted.');
+        }
+
         if ($competition->status !== 'ongoing') {
             return back()->with('error', 'Submissions are only allowed when the competition is ongoing.');
         }

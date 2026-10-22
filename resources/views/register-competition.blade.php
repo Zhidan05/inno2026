@@ -7,25 +7,23 @@
   <title>Register - {{ $competition->name }} - InnoElectrica 26</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Exo+2:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.4.2/uicons-regular-rounded/css/uicons-regular-rounded.css'>
   <link rel="stylesheet" href="{{ asset('css/style.css') }}" />
+  @vite(['resources/css/app.css', 'resources/js/app.js'])
   <style>
       :root {
-          --bg-primary: #050811;
-          --bg-secondary: #0a0f1d;
-          --bg-tertiary: #111827;
-          --surface: #111827;
-          --surface-elevated: #1f2937;
-          --border-subtle: rgba(255, 255, 255, 0.05);
-          --border-default: rgba(255, 255, 255, 0.1);
+          --bg-primary: #050816;
+          --bg-secondary: #0a0f24;
+          --bg-tertiary: #0f172a;
+          --surface: rgba(15, 23, 42, 0.50);
+          --surface-elevated: rgba(15, 23, 42, 0.70);
+          --border-subtle: rgba(255, 255, 255, 0.08);
+          --border-default: rgba(255, 255, 255, 0.12);
       }
       body {
-          background-color: var(--bg-primary);
-      }
-      .navbar {
-          background: rgba(5, 8, 17, 0.8) !important;
-          border-bottom: 1px solid var(--border-default) !important;
+          background-color: #050816 !important;
+          color: #f8fafc;
       }
       .registration-block {
           border: 1px solid var(--border-subtle);
@@ -184,29 +182,100 @@
   </style>
 </head>
 
-<body>
-  <nav class="navbar" id="navbar" style="background: rgba(4, 10, 67, 0.95); backdrop-filter: blur(10px);">
-    <div class="nav-container">
-      <a href="{{ url('/') }}" class="nav-logo">
-        <img src="{{ asset('images/Logo.png') }}" alt="InnoElectrica Logo" style="height: 40px; width: auto; border-radius: 50%; margin-right: 8px;">
-        <span class="logo-text">IEE</span>
-        <span class="logo-year">2026</span>
+<body class="bg-[#050816] text-slate-100 min-h-screen">
+  <!-- FLOATING GLASS NAVBAR (100% Homepage Aligned) -->
+  <header class="sticky top-4 z-50 mx-auto max-w-6xl px-4 sm:px-6">
+    <nav class="rounded-2xl border border-white/15 bg-slate-900/40 backdrop-blur-xl px-5 sm:px-6 py-3.5 flex items-center justify-between shadow-[0_8px_32px_0_rgba(0,0,0,0.36),inset_0_1px_0_0_rgba(255,255,255,0.1)] relative" style="-webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);">
+      
+      <!-- Left: Brand Logo Lockup -->
+      <a href="{{ url('/') }}" class="flex items-center gap-3 group focus:outline-none focus:ring-2 focus:ring-cyan-400 rounded-xl" style="text-decoration: none;">
+        <div class="relative">
+          <img 
+            src="{{ asset('images/Logo.png') }}" 
+            alt="InnoElectrica Logo" 
+            class="h-9 w-9 rounded-full object-cover ring-2 ring-cyan-400/40 group-hover:ring-cyan-400 transition-all shadow-[0_0_15px_rgba(56,189,248,0.3)]"
+          />
+          <div class="absolute inset-0 rounded-full bg-cyan-400/10 pointer-events-none"></div>
+        </div>
+        <div class="flex flex-col">
+          <div class="flex items-center gap-1.5 leading-none">
+            <span class="font-['Orbitron'] font-extrabold text-base tracking-wider text-white">IEE</span>
+            <span class="font-['Orbitron'] font-black text-base text-[#FACC15]">2026</span>
+          </div>
+          <span class="font-['JetBrains_Mono'] text-[9px] uppercase tracking-widest text-slate-400 group-hover:text-slate-300 transition-colors">
+            IEEE SB UNRI
+          </span>
+        </div>
       </a>
-      <ul class="nav-links" id="navLinks">
-        <li><a href="{{ route('dashboard') }}" class="nav-link">Dashboard</a></li>
-        <li><a href="{{ route('profile.edit') }}" class="nav-link">Profile</a></li>
-        <li>
-            <form method="POST" action="{{ route('logout') }}" style="display:inline;">
-                @csrf
-                <a href="#" class="nav-link nav-login" onclick="event.preventDefault(); this.closest('form').submit();">Logout</a>
-            </form>
-        </li>
-      </ul>
-      <div class="nav-hamburger" id="hamburger">
-        <span></span><span></span><span></span>
+
+      <!-- Center: Desktop Nav Links -->
+      <div class="hidden md:flex items-center gap-8">
+        <a href="{{ route('dashboard') }}" class="text-sm font-medium text-slate-300 hover:text-cyan-400 transition-colors relative py-1 group" style="text-decoration: none;">
+          Dashboard
+          <span class="absolute bottom-0 left-0 w-0 group-hover:w-full h-[2px] bg-cyan-400 transition-all duration-200"></span>
+        </a>
+        <a href="{{ route('profile.edit') }}" class="text-sm font-medium text-slate-300 hover:text-cyan-400 transition-colors relative py-1 group" style="text-decoration: none;">
+          Profile
+          <span class="absolute bottom-0 left-0 w-0 group-hover:w-full h-[2px] bg-cyan-400 transition-all duration-200"></span>
+        </a>
+        @if(Auth::user() && Auth::user()->isBackofficeUser())
+        <a href="{{ url('/admin') }}" class="text-sm font-medium text-slate-300 hover:text-cyan-400 transition-colors relative py-1 group" style="text-decoration: none;">
+          Admin Panel
+          <span class="absolute bottom-0 left-0 w-0 group-hover:w-full h-[2px] bg-cyan-400 transition-all duration-200"></span>
+        </a>
+        @endif
       </div>
-    </div>
-  </nav>
+
+      <!-- Right: Logout Action -->
+      <div class="hidden sm:flex items-center gap-4">
+        <form method="POST" action="{{ route('logout') }}" class="m-0 p-0">
+          @csrf
+          <button type="submit" class="bg-white/10 hover:bg-red-500/20 text-white hover:text-red-300 border border-white/15 hover:border-red-500/30 font-medium text-xs px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+            <span>Logout</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Mobile Hamburger Button -->
+      <button 
+        id="mobileMenuBtn"
+        type="button" 
+        class="md:hidden w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 backdrop-blur-md text-slate-300 hover:text-white flex items-center justify-center transition-all focus:outline-none shadow-sm cursor-pointer"
+        style="-webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);"
+        aria-label="Toggle navigation menu"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path id="hamburgerIcon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+      </button>
+
+      <!-- Mobile Dropdown Menu -->
+      <div id="mobileMenu" class="hidden absolute top-full left-0 right-0 mt-2 p-4 rounded-2xl border border-white/15 shadow-2xl flex-col gap-2 md:hidden z-50" style="background: #070d28 !important; box-shadow: 0 25px 50px -10px rgba(0,0,0,0.95), inset 0 1px 0 0 rgba(255,255,255,0.15);">
+        <a href="{{ route('dashboard') }}" class="text-sm font-medium text-slate-200 hover:text-cyan-400 hover:bg-white/5 px-4 py-3 rounded-xl transition-all block" style="text-decoration: none;">
+          Dashboard
+        </a>
+        <a href="{{ route('profile.edit') }}" class="text-sm font-medium text-slate-200 hover:text-cyan-400 hover:bg-white/5 px-4 py-3 rounded-xl transition-all block" style="text-decoration: none;">
+          Profile
+        </a>
+        @if(Auth::user() && Auth::user()->isBackofficeUser())
+        <a href="{{ url('/admin') }}" class="text-sm font-medium text-slate-200 hover:text-cyan-400 hover:bg-white/5 px-4 py-3 rounded-xl transition-all block" style="text-decoration: none;">
+          Admin Panel
+        </a>
+        @endif
+        <div class="pt-2 border-t border-white/10 mt-1">
+          <form method="POST" action="{{ route('logout') }}" class="m-0">
+            @csrf
+            <button type="submit" class="w-full text-center py-2.5 rounded-xl font-medium text-xs bg-white/10 hover:bg-red-500/20 text-white hover:text-red-300 border border-white/15 hover:border-red-500/30 transition-all flex items-center justify-center gap-2 cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+              <span>Logout</span>
+            </button>
+          </form>
+        </div>
+      </div>
+
+    </nav>
+  </header>
 
   <main class="dashboard-main">
     <div class="dash-container" style="max-width: 800px; margin: 0 auto;">
@@ -296,7 +365,7 @@
                           <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;">Payment Instructions</div>
                           <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">
                               Please transfer <strong>IDR {{ number_format($competition->registration_fee, 0, ',', '.') }}</strong> to:<br>
-                              <strong style="color: var(--accent-gold);">Bank XYZ - 123456789 (a.n InnoElectrica)</strong><br>
+                              <strong style="color: var(--accent-gold);">Bank XYZ - 123456789 (Account Name: InnoElectrica)</strong><br>
                               Upload the transfer receipt below to complete your registration.
                           </p>
                       </div>
@@ -396,6 +465,29 @@
           }
           checkMax();
       });
+  </script>
+  <script src="{{ asset('js/script.js') }}"></script>
+  <script>
+      const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+      const mobileMenu = document.getElementById('mobileMenu');
+      const hamburgerIcon = document.getElementById('hamburgerIcon');
+
+      if (mobileMenuBtn && mobileMenu) {
+          mobileMenuBtn.addEventListener('click', () => {
+              const isHidden = mobileMenu.classList.toggle('hidden');
+              if (!isHidden) {
+                  mobileMenu.classList.add('flex');
+                  if (hamburgerIcon) {
+                      hamburgerIcon.setAttribute('d', 'M6 18L18 6M6 6l12 12');
+                  }
+              } else {
+                  mobileMenu.classList.remove('flex');
+                  if (hamburgerIcon) {
+                      hamburgerIcon.setAttribute('d', 'M4 6h16M4 12h16M4 18h16');
+                  }
+              }
+          });
+      }
   </script>
 </body>
 </html>
