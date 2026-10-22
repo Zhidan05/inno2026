@@ -2,16 +2,17 @@
 
 namespace App\Filament\Participant\Widgets;
 
-use Filament\Widgets\Widget;
 use App\Models\Registration;
+use Filament\Widgets\Widget;
 
 class ParticipantOverviewWidget extends Widget
 {
     protected static string $view = 'filament.participant.widgets.participant-overview-widget';
 
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
 
     public ?Registration $registration = null;
+
     public ?int $rank = null;
 
     public function mount(): void

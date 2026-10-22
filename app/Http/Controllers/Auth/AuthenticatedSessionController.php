@@ -39,6 +39,7 @@ class AuthenticatedSessionController extends Controller
             }
             // Clear any non-admin intended URL (e.g. /dashboard) to prevent backoffice users from reaching participant dashboard
             session()->forget('url.intended');
+
             return redirect('/admin');
         }
 

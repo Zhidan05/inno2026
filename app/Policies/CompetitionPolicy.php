@@ -2,8 +2,9 @@
 
 namespace App\Policies;
 
-use App\Models\User;
+use App\Enums\UserRole;
 use App\Models\Competition;
+use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class CompetitionPolicy
@@ -15,9 +16,10 @@ class CompetitionPolicy
      */
     public function viewAny(User $user): bool
     {
-        if ($user->hasRole(\App\Enums\UserRole::JUDGE->value)) {
+        if ($user->hasRole(UserRole::JUDGE->value)) {
             return true;
         }
+
         return $user->can('view_any_competition');
     }
 
@@ -26,9 +28,10 @@ class CompetitionPolicy
      */
     public function view(User $user, Competition $competition): bool
     {
-        if ($user->hasRole(\App\Enums\UserRole::JUDGE->value) && !$user->hasRole([\App\Enums\UserRole::ADMIN->value, \App\Enums\UserRole::MODERATOR->value])) {
+        if ($user->hasRole(UserRole::JUDGE->value) && ! $user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
             return $competition->judges()->where('users.id', $user->id)->exists();
         }
+
         return $user->can('view_competition');
     }
 
@@ -37,9 +40,10 @@ class CompetitionPolicy
      */
     public function create(User $user): bool
     {
-        if ($user->hasRole(\App\Enums\UserRole::JUDGE->value) && !$user->hasRole([\App\Enums\UserRole::ADMIN->value, \App\Enums\UserRole::MODERATOR->value])) {
+        if ($user->hasRole(UserRole::JUDGE->value) && ! $user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
             return false;
         }
+
         return $user->can('create_competition');
     }
 
@@ -48,9 +52,10 @@ class CompetitionPolicy
      */
     public function update(User $user, Competition $competition): bool
     {
-        if ($user->hasRole(\App\Enums\UserRole::JUDGE->value) && !$user->hasRole([\App\Enums\UserRole::ADMIN->value, \App\Enums\UserRole::MODERATOR->value])) {
+        if ($user->hasRole(UserRole::JUDGE->value) && ! $user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
             return false;
         }
+
         return $user->can('update_competition');
     }
 
@@ -59,9 +64,10 @@ class CompetitionPolicy
      */
     public function delete(User $user, Competition $competition): bool
     {
-        if ($user->hasRole(\App\Enums\UserRole::JUDGE->value) && !$user->hasRole([\App\Enums\UserRole::ADMIN->value, \App\Enums\UserRole::MODERATOR->value])) {
+        if ($user->hasRole(UserRole::JUDGE->value) && ! $user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
             return false;
         }
+
         return $user->can('delete_competition');
     }
 
@@ -70,9 +76,10 @@ class CompetitionPolicy
      */
     public function deleteAny(User $user): bool
     {
-        if ($user->hasRole(\App\Enums\UserRole::JUDGE->value) && !$user->hasRole([\App\Enums\UserRole::ADMIN->value, \App\Enums\UserRole::MODERATOR->value])) {
+        if ($user->hasRole(UserRole::JUDGE->value) && ! $user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
             return false;
         }
+
         return $user->can('delete_any_competition');
     }
 

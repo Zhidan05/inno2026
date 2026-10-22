@@ -2,8 +2,9 @@
 
 namespace App\Policies;
 
-use App\Models\User;
+use App\Enums\UserRole;
 use App\Models\Registration;
+use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class RegistrationPolicy
@@ -23,9 +24,10 @@ class RegistrationPolicy
      */
     public function view(User $user, Registration $registration): bool
     {
-        if ($user->hasRole(\App\Enums\UserRole::JUDGE->value) && !$user->hasRole([\App\Enums\UserRole::ADMIN->value, \App\Enums\UserRole::MODERATOR->value])) {
+        if ($user->hasRole(UserRole::JUDGE->value) && ! $user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
             return $user->can('view_registration') && $registration->competition->judges()->where('users.id', $user->id)->exists();
         }
+
         return $user->can('view_registration');
     }
 
@@ -42,9 +44,10 @@ class RegistrationPolicy
      */
     public function update(User $user, Registration $registration): bool
     {
-        if ($user->hasRole(\App\Enums\UserRole::JUDGE->value) && !$user->hasRole([\App\Enums\UserRole::ADMIN->value, \App\Enums\UserRole::MODERATOR->value])) {
+        if ($user->hasRole(UserRole::JUDGE->value) && ! $user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
             return $user->can('update_registration') && $registration->competition->judges()->where('users.id', $user->id)->exists();
         }
+
         return $user->can('update_registration');
     }
 

@@ -2,8 +2,6 @@
 
 namespace App\Filament\Resources\CompetitionResource\RelationManagers;
 
-use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -14,7 +12,7 @@ class WinnersRelationManager extends RelationManager
     protected static string $relationship = 'registrations';
 
     protected static ?string $recordTitleAttribute = 'team_name';
-    
+
     protected static ?string $title = 'Winners / Results';
 
     public function table(Table $table): Table

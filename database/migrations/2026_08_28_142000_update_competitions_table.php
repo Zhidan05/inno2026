@@ -24,13 +24,13 @@ return new class extends Migration
     {
         Schema::table('competitions', function (Blueprint $table) {
             $table->dropColumn([
-                'slug', 
-                'registration_open_at', 
-                'registration_close_at', 
-                'competition_start_at', 
-                'competition_end_at', 
-                'location', 
-                'status'
+                'slug',
+                'registration_open_at',
+                'registration_close_at',
+                'competition_start_at',
+                'competition_end_at',
+                'location',
+                'status',
             ]);
             $table->boolean('is_active')->default(true);
         });

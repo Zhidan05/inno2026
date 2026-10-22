@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ParticipantResource\Pages;
 
+use App\Enums\UserRole;
 use App\Filament\Resources\ParticipantResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -15,7 +16,7 @@ class EditParticipant extends EditRecord
         return [
             Actions\ViewAction::make(),
             Actions\DeleteAction::make()
-                ->visible(fn () => auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
+                ->visible(fn () => auth()->user()?->hasRole(UserRole::ADMIN->value)),
         ];
     }
 }

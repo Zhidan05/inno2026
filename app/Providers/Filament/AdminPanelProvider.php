@@ -2,8 +2,9 @@
 
 namespace App\Providers\Filament;
 
-use Filament\Http\Middleware\Authenticate;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
+use Filament\Enums\ThemeMode;
+use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -11,6 +12,7 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -33,9 +35,9 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogoHeight('2.5rem')
             ->favicon(asset('images/Logo.png'))
             ->font('Exo 2')
-            ->defaultThemeMode(\Filament\Enums\ThemeMode::Dark)
+            ->defaultThemeMode(ThemeMode::Dark)
             ->colors([
-                'primary' => \Filament\Support\Colors\Color::hex('#FFC209'),
+                'primary' => Color::hex('#FFC209'),
                 'gray' => [
                     50 => '#f0f3fa',
                     100 => '#e3e8f5',
@@ -51,7 +53,7 @@ class AdminPanelProvider extends PanelProvider
                 ],
             ])
             ->renderHook(
-                \Filament\View\PanelsRenderHook::HEAD_END,
+                PanelsRenderHook::HEAD_END,
                 fn (): string => '<style>
                     body, .fi-body { background-color: #050816 !important; }
                     .dark .fi-main { background-color: #050816 !important; }

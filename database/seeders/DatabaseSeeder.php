@@ -2,13 +2,13 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
-use App\Enums\UserRole;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 class DatabaseSeeder extends Seeder
@@ -29,7 +29,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         if ($exitCode !== 0) {
-            throw new \Exception('Shield generation failed: ' . Artisan::output());
+            throw new \Exception('Shield generation failed: '.Artisan::output());
         }
 
         // Clear permission cache
@@ -44,7 +44,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($requiredPermissions as $perm) {
-            if (!Permission::where('name', $perm)->where('guard_name', 'web')->exists()) {
+            if (! Permission::where('name', $perm)->where('guard_name', 'web')->exists()) {
                 throw new \Exception("Required permission missing: {$perm} for guard web.");
             }
         }
@@ -89,7 +89,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        if (!$adminUser->hasRole(UserRole::ADMIN->value)) {
+        if (! $adminUser->hasRole(UserRole::ADMIN->value)) {
             $adminUser->assignRole(UserRole::ADMIN->value);
         }
     }

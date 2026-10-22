@@ -2,18 +2,17 @@
 
 namespace App\Filament\Resources\UserResource\RelationManagers;
 
-use Filament\Forms;
+use App\Filament\Resources\ParticipantResource;
+use App\Models\Registration;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Models\Registration;
 
 class RegistrationsRelationManager extends RelationManager
 {
     protected static string $relationship = 'registrations';
+
     protected static ?string $title = 'My Competitions';
 
     public function form(Form $form): Form
@@ -65,7 +64,7 @@ class RegistrationsRelationManager extends RelationManager
                 Tables\Actions\Action::make('view_participant')
                     ->label('View details')
                     ->icon('heroicon-o-eye')
-                    ->url(fn (Registration $record): string => \App\Filament\Resources\ParticipantResource::getUrl('view', ['record' => $record])),
+                    ->url(fn (Registration $record): string => ParticipantResource::getUrl('view', ['record' => $record])),
             ])
             ->bulkActions([
                 //

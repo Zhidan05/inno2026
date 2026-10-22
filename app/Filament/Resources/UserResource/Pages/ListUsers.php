@@ -2,8 +2,11 @@
 
 namespace App\Filament\Resources\UserResource\Pages;
 
+use App\Enums\UserRole;
 use App\Filament\Resources\UserResource;
+use App\Models\User;
 use Filament\Actions;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\ListRecords;
 
 class ListUsers extends ListRecords
@@ -13,14 +16,14 @@ class ListUsers extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            \Filament\Actions\Action::make('export_csv')
+            Action::make('export_csv')
                 ->label('Export CSV')
                 ->icon('heroicon-o-document-arrow-down')
                 ->action(function () {
                     return response()->streamDownload(function () {
                         $handle = fopen('php://output', 'w');
                         fputcsv($handle, ['ID', 'Name', 'Email', 'Phone', 'Institution', 'Joined At']);
-                        foreach (\App\Models\User::all() as $record) {
+                        foreach (User::all() as $record) {
                             fputcsv($handle, [
                                 $record->id,
                                 $record->name,
@@ -33,7 +36,7 @@ class ListUsers extends ListRecords
                         fclose($handle);
                     }, 'users_export.csv');
                 })
-                ->visible(fn () => auth()->user()?->hasRole(\App\Enums\UserRole::ADMIN->value)),
+                ->visible(fn () => auth()->user()?->hasRole(UserRole::ADMIN->value)),
             Actions\CreateAction::make(),
         ];
     }

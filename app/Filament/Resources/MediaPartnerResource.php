@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\UserRole;
 use App\Filament\Resources\MediaPartnerResource\Pages;
 use App\Models\MediaPartner;
 use Filament\Forms;
@@ -9,18 +10,23 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class MediaPartnerResource extends Resource
 {
     protected static ?string $model = MediaPartner::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-building-office-2';
+
     protected static ?string $navigationGroup = 'SYSTEM';
 
     public static function canAccess(): bool
     {
         $user = auth()->user();
-        return $user && $user->hasRole(\App\Enums\UserRole::ADMIN->value);
+
+        return $user && $user->hasRole(UserRole::ADMIN->value);
     }
 
     public static function form(Form $form): Form
@@ -35,22 +41,23 @@ class MediaPartnerResource extends Resource
                     ->image()
                     ->required()
                     ->directory('media_partners')
-                    ->saveUploadedFileUsing(function (\Livewire\Features\SupportFileUploads\TemporaryUploadedFile $file): string {
+                    ->saveUploadedFileUsing(function (TemporaryUploadedFile $file): string {
                         $img = @imagecreatefromstring($file->get());
-                        if (!$img) {
+                        if (! $img) {
                             return $file->store('media_partners', 'public');
                         }
                         imagepalettetotruecolor($img);
                         imagealphablending($img, true);
                         imagesavealpha($img, true);
-                        
-                        $filename = 'media_partners/' . \Illuminate\Support\Str::uuid() . '.webp';
+
+                        $filename = 'media_partners/'.Str::uuid().'.webp';
                         ob_start();
                         imagewebp($img, null, 80);
                         $imageData = ob_get_clean();
                         imagedestroy($img);
-                        
-                        \Illuminate\Support\Facades\Storage::disk('public')->put($filename, $imageData);
+
+                        Storage::disk('public')->put($filename, $imageData);
+
                         return $filename;
                     })
                     ->columnSpanFull(),

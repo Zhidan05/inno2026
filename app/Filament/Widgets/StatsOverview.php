@@ -2,8 +2,9 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\User;
+use App\Enums\UserRole;
 use App\Models\Registration;
+use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
@@ -14,7 +15,8 @@ class StatsOverview extends BaseWidget
     public static function canView(): bool
     {
         $user = auth()->user();
-        return $user && $user->hasRole([\App\Enums\UserRole::ADMIN->value, \App\Enums\UserRole::MODERATOR->value]);
+
+        return $user && $user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value]);
     }
 
     protected function getStats(): array

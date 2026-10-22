@@ -3,10 +3,9 @@
 namespace App\Filament\Resources\CompetitionResource\Pages;
 
 use App\Filament\Resources\CompetitionResource;
-use Filament\Actions;
-use Filament\Resources\Pages\ViewRecord;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
+use Filament\Resources\Pages\ViewRecord;
 
 class ViewCompetition extends ViewRecord
 {

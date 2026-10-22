@@ -2,9 +2,8 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\Registration;
-use App\Models\Competition;
 use App\Enums\UserRole;
+use App\Models\Registration;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
@@ -15,13 +14,14 @@ class JudgeStatsOverview extends BaseWidget
     public static function canView(): bool
     {
         $user = auth()->user();
-        return $user && $user->hasRole(UserRole::JUDGE->value) && !$user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value]);
+
+        return $user && $user->hasRole(UserRole::JUDGE->value) && ! $user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value]);
     }
 
     protected function getStats(): array
     {
         $user = auth()->user();
-        if (!$user) {
+        if (! $user) {
             return [];
         }
 

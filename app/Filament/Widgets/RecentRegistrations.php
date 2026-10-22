@@ -2,6 +2,8 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\UserRole;
+use App\Filament\Resources\ParticipantResource;
 use App\Models\Registration;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -9,13 +11,15 @@ use Filament\Widgets\TableWidget as BaseWidget;
 
 class RecentRegistrations extends BaseWidget
 {
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
+
     protected static ?int $sort = 2;
 
     public static function canView(): bool
     {
         $user = auth()->user();
-        return $user && $user->hasRole([\App\Enums\UserRole::ADMIN->value, \App\Enums\UserRole::MODERATOR->value]);
+
+        return $user && $user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value]);
     }
 
     public function table(Table $table): Table
@@ -56,7 +60,7 @@ class RecentRegistrations extends BaseWidget
                 Tables\Actions\Action::make('view')
                     ->label('View')
                     ->icon('heroicon-m-eye')
-                    ->url(fn (Registration $record): string => \App\Filament\Resources\ParticipantResource::getUrl('view', ['record' => $record])),
+                    ->url(fn (Registration $record): string => ParticipantResource::getUrl('view', ['record' => $record])),
             ])
             ->paginated(false);
     }

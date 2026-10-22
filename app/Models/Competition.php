@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Competition extends Model
@@ -183,7 +184,7 @@ class Competition extends Model
         return $this->hasMany(Registration::class);
     }
 
-    public function judges(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function judges(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'competition_judge');
     }

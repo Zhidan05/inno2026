@@ -2,22 +2,26 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\Competition;
 use App\Enums\UserRole;
+use App\Filament\Resources\CompetitionResource;
+use App\Models\Competition;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 
 class JudgeAssignedCompetitions extends BaseWidget
 {
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
+
     protected static ?int $sort = 2;
+
     protected static ?string $heading = 'Assigned Competitions';
 
     public static function canView(): bool
     {
         $user = auth()->user();
-        return $user && $user->hasRole(UserRole::JUDGE->value) && !$user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value]);
+
+        return $user && $user->hasRole(UserRole::JUDGE->value) && ! $user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value]);
     }
 
     public function table(Table $table): Table
@@ -65,13 +69,11 @@ class JudgeAssignedCompetitions extends BaseWidget
                 Tables\Columns\TextColumn::make('scoring_progress')
                     ->label('Scoring Progress')
                     ->badge()
-                    ->color(fn (Competition $record): string => 
-                        $record->approved_registrations_count > 0 && $record->scored_registrations_count >= $record->approved_registrations_count
+                    ->color(fn (Competition $record): string => $record->approved_registrations_count > 0 && $record->scored_registrations_count >= $record->approved_registrations_count
                             ? 'success'
                             : ($record->scored_registrations_count > 0 ? 'warning' : 'gray')
                     )
-                    ->state(fn (Competition $record): string => 
-                        "Scored: {$record->scored_registrations_count} / {$record->approved_registrations_count}"
+                    ->state(fn (Competition $record): string => "Scored: {$record->scored_registrations_count} / {$record->approved_registrations_count}"
                     ),
             ])
             ->actions([
@@ -79,7 +81,7 @@ class JudgeAssignedCompetitions extends BaseWidget
                     ->label('Open Competition')
                     ->icon('heroicon-m-arrow-top-right-on-square')
                     ->color('primary')
-                    ->url(fn (Competition $record): string => \App\Filament\Resources\CompetitionResource::getUrl('view', ['record' => $record])),
+                    ->url(fn (Competition $record): string => CompetitionResource::getUrl('view', ['record' => $record])),
             ])
             ->emptyStateHeading('No Assigned Competitions')
             ->emptyStateDescription('You have not been assigned to any competitions yet.')

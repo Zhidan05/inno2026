@@ -45,7 +45,7 @@ class SubmissionController extends Controller
         }
 
         // If 'both' is selected, they must provide AT LEAST one
-        if ($competition->submission_type === 'both' && !$request->hasFile('submission_file') && !$request->filled('submission_link')) {
+        if ($competition->submission_type === 'both' && ! $request->hasFile('submission_file') && ! $request->filled('submission_link')) {
             return back()->with('error', 'You must provide either a file or a link.');
         }
 

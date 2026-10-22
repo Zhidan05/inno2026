@@ -7,7 +7,6 @@ use App\Models\Registration;
 use App\Models\TeamMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class CompetitionRegistrationController extends Controller
@@ -75,18 +74,18 @@ class CompetitionRegistrationController extends Controller
             if ($competition->registration_type === 'individual') {
                 return back()->withErrors(['registration_mode' => 'This competition is for individuals only.']);
             }
-            
+
             $rules['team_name'] = [
                 'required',
                 'string',
                 'max:255',
                 Rule::unique('registrations')->where(function ($query) use ($competition) {
                     return $query->where('competition_id', $competition->id);
-                })
+                }),
             ];
 
             // Validate team members
-            $rules['members'] = ['array', 'max:' . ($competition->max_team_members - 1)];
+            $rules['members'] = ['array', 'max:'.($competition->max_team_members - 1)];
             $rules['members.*.name'] = ['required', 'string', 'max:255'];
             $rules['members.*.nim'] = ['required', 'string', 'max:50'];
         } else {
@@ -130,4 +129,3 @@ class CompetitionRegistrationController extends Controller
         return redirect()->route('dashboard')->with('success', 'Registration submitted successfully! Waiting for verification.');
     }
 }
-

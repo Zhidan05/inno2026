@@ -2,12 +2,10 @@
 
 namespace App\Filament\Resources\CompetitionResource\RelationManagers;
 
-use Filament\Forms;
-use Filament\Forms\Form;
+use App\Enums\UserRole;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class JudgesRelationManager extends RelationManager
@@ -19,9 +17,10 @@ class JudgesRelationManager extends RelationManager
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
         $user = auth()->user();
-        if ($user && $user->hasRole(\App\Enums\UserRole::JUDGE->value) && !$user->hasRole([\App\Enums\UserRole::ADMIN->value, \App\Enums\UserRole::MODERATOR->value])) {
+        if ($user && $user->hasRole(UserRole::JUDGE->value) && ! $user->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])) {
             return false;
         }
+
         return true;
     }
 
