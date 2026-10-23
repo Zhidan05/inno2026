@@ -7,9 +7,11 @@ use App\Filament\Resources\CompetitionResource\Pages;
 use App\Filament\Resources\CompetitionResource\RelationManagers;
 use App\Models\Competition;
 use App\Models\User;
+use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Set;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -160,6 +162,7 @@ class CompetitionResource extends Resource
                     ->options([
                         'draft' => 'Draft',
                         'registration_open' => 'Registration Open',
+                        'extended' => 'Extended',
                         'registration_closed' => 'Registration Closed',
                         'upcoming' => 'Upcoming',
                         'ongoing' => 'Ongoing',
@@ -171,6 +174,10 @@ class CompetitionResource extends Resource
                     ->default('draft'),
                 Forms\Components\DateTimePicker::make('registration_open_at'),
                 Forms\Components\DateTimePicker::make('registration_close_at'),
+                Forms\Components\DateTimePicker::make('extended_registration_close_at')
+                    ->label('Extended Registration Closes At')
+                    ->helperText('Optional. Overrides original registration deadline and sets status to Extended until this deadline passes.')
+                    ->nullable(),
                 Forms\Components\DateTimePicker::make('competition_start_at'),
                 Forms\Components\DateTimePicker::make('competition_end_at'),
                 Forms\Components\Select::make('judge_ids')
@@ -254,22 +261,29 @@ class CompetitionResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'registration_open' => 'Registration Open',
-                        'registration_closed' => 'Registration Closed',
-                        'upcoming' => 'Upcoming',
-                        'ongoing' => 'Ongoing',
-                        'completed' => 'Completed',
-                        'results_published' => 'Results Published',
-                        'draft' => 'Draft',
-                        'inactive' => 'Inactive',
-                        default => ucfirst(str_replace('_', ' ', $state)),
+                    ->formatStateUsing(function (string $state, Competition $record): string {
+                        if ($record->isExtended()) {
+                            return $record->extended_status_label;
+                        }
+
+                        return match ($state) {
+                            'extended' => $record->extended_status_label ?: 'Extended',
+                            'registration_open' => 'Registration Open',
+                            'registration_closed' => 'Registration Closed',
+                            'upcoming' => 'Upcoming',
+                            'ongoing' => 'Ongoing',
+                            'completed' => 'Completed',
+                            'results_published' => 'Results Published',
+                            'draft' => 'Draft',
+                            'inactive' => 'Inactive',
+                            default => ucfirst(str_replace('_', ' ', $state)),
+                        };
                     })
                     ->colors([
+                        'warning' => fn ($state, $record) => $record->isExtended() || $state === 'extended' || $state === 'upcoming',
                         'secondary' => 'draft',
-                        'success' => fn ($state) => in_array($state, ['registration_open', 'results_published']),
+                        'success' => fn ($state, $record) => ! $record->isExtended() && in_array($state, ['registration_open', 'results_published']),
                         'danger' => 'registration_closed',
-                        'warning' => 'upcoming',
                         'primary' => 'ongoing',
                         'gray' => fn ($state) => in_array($state, ['completed', 'inactive']),
                     ]),
@@ -282,6 +296,99 @@ class CompetitionResource extends Resource
                 //
             ])
             ->actions([
+                Tables\Actions\Action::make('extend_registration')
+                    ->label('Extend Registration')
+                    ->icon('heroicon-o-calendar-days')
+                    ->color('warning')
+                    ->visible(fn () => ! auth()->user()?->hasRole(UserRole::JUDGE->value) || auth()->user()?->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value]))
+                    ->modalHeading(fn (Competition $record) => "Extend Registration: {$record->name}")
+                    ->modalDescription('Set a new deadline for this competition. The status will automatically display as Extended on the website and registration will reopen.')
+                    ->modalSubmitActionLabel('Save Extension')
+                    ->form([
+                        Forms\Components\DateTimePicker::make('extended_registration_close_at')
+                            ->label('New Extended Registration Deadline')
+                            ->required()
+                            ->seconds(false)
+                            ->native(false)
+                            ->default(function (Competition $record) {
+                                if ($record->extended_registration_close_at && $record->extended_registration_close_at->isFuture()) {
+                                    return $record->extended_registration_close_at;
+                                }
+                                $base = ($record->registration_close_at && $record->registration_close_at->isFuture())
+                                    ? $record->registration_close_at
+                                    : now();
+
+                                return $base->copy()->addDays(7)->setTime(23, 59, 0);
+                            })
+                            ->helperText(function (Competition $record) {
+                                if ($record->registration_close_at) {
+                                    return 'Original deadline: '.$record->registration_close_at->format('l, d F Y H:i').' WIB. New deadline must be later than now and the original deadline.';
+                                }
+
+                                return 'Must be in the future.';
+                            })
+                            ->rules([
+                                'after:now',
+                                function (Forms\Get $get, Competition $record) {
+                                    return function (string $attribute, $value, \Closure $fail) use ($record) {
+                                        $parsed = Carbon::parse($value);
+                                        if ($record->registration_close_at && $parsed->lte($record->registration_close_at)) {
+                                            $fail('The extension deadline must be after the original registration deadline ('.$record->registration_close_at->format('d M Y H:i').' WIB).');
+                                        }
+                                    };
+                                },
+                            ]),
+                        Forms\Components\Toggle::make('auto_adjust_schedule')
+                            ->label('Auto-adjust competition timeline if needed')
+                            ->helperText('If the new registration deadline exceeds competition start/end dates, automatically shift them forward to maintain a logical sequence.')
+                            ->default(true),
+                    ])
+                    ->action(function (Competition $record, array $data): void {
+                        $newClose = Carbon::parse($data['extended_registration_close_at']);
+                        $record->extended_registration_close_at = $newClose;
+
+                        if (! empty($data['auto_adjust_schedule'])) {
+                            if ($record->competition_start_at && $newClose->gte($record->competition_start_at)) {
+                                $record->competition_start_at = $newClose->copy()->addDays(2)->setTime(9, 0, 0);
+                            }
+
+                            if ($record->competition_end_at) {
+                                $minEnd = $record->competition_start_at
+                                    ? $record->competition_start_at->copy()->addDays(3)->setTime(23, 59, 0)
+                                    : $newClose->copy()->addDays(5)->setTime(23, 59, 0);
+
+                                if ($newClose->gte($record->competition_end_at) || ($record->competition_start_at && $record->competition_start_at->gte($record->competition_end_at))) {
+                                    $record->competition_end_at = $minEnd;
+                                }
+                            }
+                        }
+
+                        $record->save();
+
+                        Notification::make()
+                            ->title('Registration Extended')
+                            ->body("Registration for {$record->name} is now extended until {$newClose->translatedFormat('l, d F Y H:i')} WIB.")
+                            ->success()
+                            ->send();
+                    }),
+                Tables\Actions\Action::make('clear_extension')
+                    ->label('Reset Extension')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('danger')
+                    ->visible(fn (Competition $record) => ! empty($record->extended_registration_close_at) && (! auth()->user()?->hasRole(UserRole::JUDGE->value) || auth()->user()?->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])))
+                    ->requiresConfirmation()
+                    ->modalHeading('Clear Registration Extension')
+                    ->modalDescription(fn (Competition $record) => "Are you sure you want to remove the extended deadline for {$record->name}? The competition will revert back to its original deadline (".($record->registration_close_at?->format('d M Y H:i') ?? 'N/A').').')
+                    ->modalSubmitActionLabel('Yes, Reset Extension')
+                    ->action(function (Competition $record): void {
+                        $record->update(['extended_registration_close_at' => null]);
+
+                        Notification::make()
+                            ->title('Extension Cleared')
+                            ->body("Registration extension for {$record->name} has been cleared.")
+                            ->success()
+                            ->send();
+                    }),
                 Tables\Actions\ViewAction::make()->label('Detail')->icon('heroicon-m-eye')->color('secondary'),
                 Tables\Actions\EditAction::make()
                     ->visible(fn () => ! auth()->user()?->hasRole(UserRole::JUDGE->value) || auth()->user()?->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])),

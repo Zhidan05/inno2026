@@ -15,7 +15,9 @@ return new class extends Migration
         });
 
         // Modify ENUM column in MySQL (Laravel string/enum modification is complex without DBAL, so we use raw SQL safely)
-        DB::statement("ALTER TABLE registrations MODIFY COLUMN status ENUM('pending', 'approved', 'rejected', 'revision_required') DEFAULT 'pending'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE registrations MODIFY COLUMN status ENUM('pending', 'approved', 'rejected', 'revision_required') DEFAULT 'pending'");
+        }
 
         Schema::table('team_members', function (Blueprint $table) {
             $table->dropColumn(['email', 'phone']);
@@ -31,7 +33,9 @@ return new class extends Migration
             $table->string('phone')->nullable();
         });
 
-        DB::statement("ALTER TABLE registrations MODIFY COLUMN status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE registrations MODIFY COLUMN status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending'");
+        }
 
         Schema::table('registrations', function (Blueprint $table) {
             $table->string('team_name')->nullable(false)->change();

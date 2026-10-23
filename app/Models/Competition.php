@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 class Competition extends Model
 {
@@ -20,6 +21,7 @@ class Competition extends Model
         'registration_fee',
         'registration_open_at',
         'registration_close_at',
+        'extended_registration_close_at',
         'competition_start_at',
         'competition_end_at',
         'location',
@@ -30,6 +32,7 @@ class Competition extends Model
     protected $casts = [
         'registration_open_at' => 'datetime',
         'registration_close_at' => 'datetime',
+        'extended_registration_close_at' => 'datetime',
         'competition_start_at' => 'datetime',
         'competition_end_at' => 'datetime',
     ];
@@ -47,14 +50,59 @@ class Competition extends Model
     }
 
     /**
+     * Get the effective registration deadline:
+     * If extended_registration_close_at is set and greater than registration_close_at,
+     * use extended_registration_close_at. Otherwise, use registration_close_at.
+     */
+    public function getEffectiveRegistrationCloseAtAttribute(): ?Carbon
+    {
+        if ($this->extended_registration_close_at && (! $this->registration_close_at || $this->extended_registration_close_at->gt($this->registration_close_at))) {
+            return $this->extended_registration_close_at;
+        }
+
+        return $this->registration_close_at;
+    }
+
+    /**
+     * Check if registration is currently extended.
+     * Returns true if extended_registration_close_at is not null,
+     * now() <= extended_registration_close_at, and the competition has not ended.
+     */
+    public function isExtended(): bool
+    {
+        if (! $this->extended_registration_close_at) {
+            return false;
+        }
+
+        if ($this->competition_end_at && now()->gt($this->competition_end_at)) {
+            return false;
+        }
+
+        return now()->lte($this->extended_registration_close_at);
+    }
+
+    /**
+     * Label for extended registration status (e.g., 'Extended to Sunday, 25 October 2026').
+     */
+    public function getExtendedStatusLabelAttribute(): string
+    {
+        if (! $this->extended_registration_close_at) {
+            return '';
+        }
+
+        return 'Extended to '.$this->extended_registration_close_at->translatedFormat('l, d F Y');
+    }
+
+    /**
      * Calculate the effective status of the competition based on priority rules:
      * 1. Competition Ended: now() > competition_end_at -> 'completed' (or 'results_published')
-     * 2. Registration Closed / Ongoing: now() > registration_close_at
+     * 2. Extended: isExtended() is true -> 'extended' (registration reopened)
+     * 3. Registration Closed / Ongoing: now() > effective_registration_close_at
      *    - If now() between competition_start_at and competition_end_at -> 'ongoing'
      *    - If now() < competition_start_at -> 'registration_closed'
-     * 3. Registration Open: now() <= registration_close_at AND now() <= competition_end_at
-     *    AND (now() >= registration_open_at OR Admin set 'registration_open')
-     * 4. Upcoming: now() < registration_open_at (not yet open)
+     * 4. Ongoing: now() >= competition_start_at
+     * 5. Registration Open: within registration window
+     * 6. Upcoming: now() < registration_open_at (not yet open)
      */
     public function calculateEffectiveStatus(?string $rawStatus = null): string
     {
@@ -72,8 +120,14 @@ class Competition extends Model
             return 'completed';
         }
 
-        // Priority 2: Registration Closed / Competition Ongoing
-        if ($this->registration_close_at && $now->gt($this->registration_close_at)) {
+        // Priority 2: Extended Registration Active
+        if ($this->isExtended()) {
+            return 'extended';
+        }
+
+        // Priority 3: Registration Closed / Competition Ongoing (uses effective close deadline)
+        $effectiveClose = $this->effective_registration_close_at;
+        if ($effectiveClose && $now->gt($effectiveClose)) {
             if ($this->competition_start_at && $now->gte($this->competition_start_at)) {
                 return 'ongoing';
             }
@@ -81,13 +135,13 @@ class Competition extends Model
             return 'registration_closed';
         }
 
-        // Competition has started even if registration_close_at was not explicitly provided
+        // Competition has started even if no close date was explicitly provided
         if ($this->competition_start_at && $now->gte($this->competition_start_at)) {
             return 'ongoing';
         }
 
-        // Priority 3: Registration Open (Admin early override OR registration date reached)
-        $notClosed = ! $this->registration_close_at || $now->lte($this->registration_close_at);
+        // Priority 4: Registration Open (Admin early override OR registration date reached)
+        $notClosed = ! $effectiveClose || $now->lte($effectiveClose);
         $notEnded = ! $this->competition_end_at || $now->lte($this->competition_end_at);
 
         if ($notClosed && $notEnded) {
@@ -99,7 +153,7 @@ class Competition extends Model
             }
         }
 
-        // Priority 4: Upcoming / Coming Soon
+        // Priority 5: Upcoming / Coming Soon
         if ($this->registration_open_at && $now->lt($this->registration_open_at)) {
             return 'upcoming';
         }
@@ -120,8 +174,8 @@ class Competition extends Model
      */
     public function isRegistrationOpen(): bool
     {
-        return $this->status === 'registration_open'
-            && (! $this->registration_close_at || now()->lte($this->registration_close_at))
+        return in_array($this->status, ['registration_open', 'extended'])
+            && (! $this->effective_registration_close_at || now()->lte($this->effective_registration_close_at))
             && (! $this->competition_end_at || now()->lte($this->competition_end_at));
     }
 
