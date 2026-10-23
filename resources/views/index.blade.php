@@ -579,27 +579,33 @@
               $fee = (float) ($competition->registration_fee ?? 0);
               $feeFormatted = $fee > 0 ? 'IDR ' . number_format($fee, 0, ',', '.') : 'Free';
 
+              $isExtended = $competition->isExtended();
               $status = $competition->status ?? 'draft';
               $isOpen = $competition->isRegistrationOpen();
-              $statusLabel = match($status) {
-                'registration_open' => 'Registration Open',
-                'upcoming' => 'Upcoming',
-                'ongoing' => 'Ongoing',
-                'registration_closed' => 'Registration Closed',
-                'completed' => 'Competition Ended',
-                'results_published' => 'Results Announced',
-                default => ucfirst(str_replace('_', ' ', $status)),
-              };
+              $statusLabel = $isExtended
+                ? 'Registration Extended'
+                : match($status) {
+                  'extended' => 'Registration Extended',
+                  'registration_open' => 'Registration Open',
+                  'upcoming' => 'Upcoming',
+                  'ongoing' => 'Ongoing',
+                  'registration_closed' => 'Registration Closed',
+                  'completed' => 'Competition Ended',
+                  'results_published' => 'Results Announced',
+                  default => ucfirst(str_replace('_', ' ', $status)),
+                };
 
-              $statusBadgeClass = match($status) {
-                'registration_open' => 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
-                'upcoming' => 'bg-amber-500/15 text-amber-300 border-amber-500/30',
-                'ongoing' => 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30',
-                'registration_closed' => 'bg-rose-500/15 text-rose-300 border-rose-500/30',
-                'completed' => 'bg-slate-500/15 text-slate-300 border-slate-500/30',
-                'results_published' => 'bg-purple-500/15 text-purple-300 border-purple-500/30',
-                default => 'bg-slate-500/15 text-slate-300 border-slate-500/30',
-              };
+              $statusBadgeClass = ($isExtended || $status === 'extended')
+                ? 'bg-amber-500/15 text-amber-300 border-amber-400/30'
+                : match($status) {
+                  'registration_open' => 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+                  'upcoming' => 'bg-amber-500/15 text-amber-300 border-amber-500/30',
+                  'ongoing' => 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30',
+                  'registration_closed' => 'bg-rose-500/15 text-rose-300 border-rose-500/30',
+                  'completed' => 'bg-slate-500/15 text-slate-300 border-slate-500/30',
+                  'results_published' => 'bg-purple-500/15 text-purple-300 border-purple-500/30',
+                  default => 'bg-slate-500/15 text-slate-300 border-slate-500/30',
+                };
 
               $subType = $competition->submission_type ?? 'none';
               $submissionLabel = match($subType) {
@@ -621,6 +627,8 @@
                 $timeline[] = [
                   'phase' => 'Registration Closes',
                   'date' => $competition->registration_close_at->format('d M Y, H:i') . ' WIB',
+                  'is_extended' => $isExtended,
+                  'extended_date' => ($isExtended && $competition->extended_registration_close_at) ? $competition->extended_registration_close_at->format('d M Y, H:i') . ' WIB' : null,
                 ];
               }
               if (!empty($competition->competition_start_at)) {
@@ -637,6 +645,49 @@
               }
 
               $registerUrl = $isOpen ? route('competition.register', $competition->slug ?? '') : null;
+              $extendedDateLabel = ($isExtended && $competition->extended_registration_close_at)
+                ? 'Extended to ' . $competition->extended_registration_close_at->translatedFormat('l, d F Y')
+                : null;
+
+              // Schedule Info Bar Configuration (consistent across all competition statuses)
+              if ($isExtended && $competition->extended_registration_close_at) {
+                $scheduleBarClass = 'bg-amber-500/10 border-amber-400/25 text-amber-300';
+                $scheduleIconClass = 'text-amber-400';
+                $scheduleText = 'Extended to ' . $competition->extended_registration_close_at->translatedFormat('l, d F Y');
+              } elseif ($isOpen || $status === 'registration_open') {
+                $scheduleBarClass = 'bg-emerald-500/10 border-emerald-400/20 text-emerald-300';
+                $scheduleIconClass = 'text-emerald-400';
+                $scheduleText = $competition->registration_close_at 
+                  ? 'Closes on ' . $competition->registration_close_at->translatedFormat('l, d F Y')
+                  : 'Open for registration';
+              } elseif ($status === 'completed' || $status === 'results_published') {
+                $scheduleBarClass = 'bg-white/[0.03] border-white/10 text-slate-400';
+                $scheduleIconClass = 'text-slate-400';
+                $scheduleText = $competition->competition_end_at 
+                  ? 'Ended on ' . $competition->competition_end_at->translatedFormat('l, d F Y')
+                  : 'Ended on ' . ($competition->effective_registration_close_at?->translatedFormat('l, d F Y') ?? 'concluded');
+              } elseif ($status === 'upcoming') {
+                $scheduleBarClass = 'bg-cyan-500/10 border-cyan-400/20 text-cyan-300';
+                $scheduleIconClass = 'text-cyan-400';
+                $scheduleText = $competition->registration_open_at
+                  ? 'Opens on ' . $competition->registration_open_at->translatedFormat('l, d F Y')
+                  : 'Opening soon';
+              } else {
+                // Registration Closed / Ongoing / default
+                $scheduleBarClass = 'bg-slate-800/60 border-white/10 text-slate-400';
+                $scheduleIconClass = 'text-slate-400';
+                $closedDate = $competition->effective_registration_close_at ?? $competition->registration_close_at;
+                $scheduleText = $closedDate 
+                  ? 'Registration closed on ' . $closedDate->translatedFormat('d F Y')
+                  : 'Registration closed';
+              }
+
+              // Disabled button text: avoid repeating 'Competition Ended' when badge already says 'Competition Ended'
+              $disabledButtonLabel = match($status) {
+                'completed', 'results_published' => 'Registration Closed',
+                'upcoming' => 'Upcoming',
+                default => ($statusLabel === 'Competition Ended' ? 'Registration Closed' : $statusLabel),
+              };
 
               $payload = [
                 'name' => $competition->name ?? 'Competition',
@@ -646,6 +697,8 @@
                 'fee' => $feeFormatted,
                 'badge' => $typeBadge,
                 'status' => $statusLabel,
+                'isExtended' => $isExtended,
+                'extendedDateLabel' => $extendedDateLabel,
                 'statusBadgeClass' => $statusBadgeClass,
                 'location' => $competition->location ?? '',
                 'submission' => $submissionLabel,
@@ -680,14 +733,14 @@
               <div>
                 <!-- Card Header: Icon + Status & Type Badges -->
                 <div class="flex items-center justify-between gap-3 mb-5">
-                  <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/15 to-cyan-500/10 border border-cyan-400/25 flex items-center justify-center text-cyan-300 group-hover:scale-105 group-hover:border-cyan-300/50 group-hover:shadow-[0_0_20px_rgba(56,189,248,0.25)] transition-all">
+                  <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/15 to-cyan-500/10 border border-cyan-400/25 flex items-center justify-center text-cyan-300 group-hover:scale-105 group-hover:border-cyan-300/50 group-hover:shadow-[0_0_20px_rgba(56,189,248,0.25)] transition-all shrink-0">
                     {!! $getCompIconSvg($competition->name ?? '', $competition->slug ?? '') !!}
                   </div>
-                  <div class="flex items-center gap-2">
-                    <span class="px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-semibold tracking-wide border {{ $statusBadgeClass }}">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span class="px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-semibold tracking-wide border whitespace-nowrap {{ $statusBadgeClass }}">
                       {{ $statusLabel }}
                     </span>
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase bg-blue-950/60 text-cyan-300 border border-cyan-500/25">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase bg-blue-950/60 text-cyan-300 border border-cyan-500/25 whitespace-nowrap shrink-0">
                       <svg class="w-3 h-3 text-cyan-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                       </svg>
@@ -697,22 +750,35 @@
                 </div>
 
                 <!-- Title & Real Description from Database -->
-                <div class="space-y-1.5">
-                  <h3 class="font-['Space_Grotesk'] font-bold text-xl sm:text-2xl text-white group-hover:text-cyan-300 transition-colors tracking-tight">
+                <div class="min-h-[3.5rem] sm:min-h-[3.75rem] flex items-start">
+                  <h3 class="font-['Space_Grotesk'] font-bold text-xl sm:text-2xl text-white group-hover:text-cyan-300 transition-colors tracking-tight leading-snug">
                     {{ $competition->name ?? 'Competition' }}
                   </h3>
                 </div>
-                @if(!empty($competition->description))
-                  <p class="text-xs sm:text-sm text-slate-400 mt-2.5 leading-relaxed line-clamp-3 min-h-[4.2rem]">
-                    {{ $competition->description }}
-                  </p>
-                @else
-                  <div class="min-h-[4.2rem] mt-2.5"></div>
-                @endif
+
+                <!-- Description container with consistent min-height & clean 3-line clamp -->
+                <div class="mt-2.5 mb-3 min-h-[4.5rem]">
+                  @if(!empty($competition->description))
+                    <p 
+                      class="text-xs sm:text-sm text-slate-400"
+                      style="padding: 0 !important; margin: 0 !important; line-height: 1.5rem; max-height: 4.5rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;"
+                    >
+                      {{ $competition->description }}
+                    </p>
+                  @endif
+                </div>
               </div>
 
               <!-- Card Footer: Stats & Expandable Action Buttons -->
-              <div class="mt-6 pt-5 border-t border-white/[0.08]">
+              <div class="pt-4 border-t border-white/[0.08]">
+                <!-- Consistent Schedule Info Bar for All Statuses -->
+                <div class="flex items-center gap-2 px-3.5 py-2 mb-3 rounded-xl border text-xs font-medium {{ $scheduleBarClass }}">
+                  <svg class="w-4 h-4 shrink-0 {{ $scheduleIconClass }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span class="truncate">{{ $scheduleText }}</span>
+                </div>
+
                 <div class="grid grid-cols-2 gap-2.5 mb-4">
                   <div class="rounded-xl bg-white/[0.03] border border-white/[0.06] p-2.5 sm:p-3 flex flex-col justify-center">
                     <span class="font-['JetBrains_Mono'] text-[10px] uppercase tracking-wider text-slate-400 font-medium">Team Format</span>
@@ -755,7 +821,7 @@
                       onclick="event.stopPropagation()"
                       class="flex-1 py-2.5 px-3 rounded-xl bg-white/[0.04] text-slate-400 border border-white/10 font-['Space_Grotesk'] font-medium text-xs text-center cursor-not-allowed opacity-75"
                     >
-                      {{ $statusLabel }}
+                      {{ $disabledButtonLabel }}
                     </button>
                   @endif
                 </div>
@@ -816,8 +882,8 @@
               <div id="exp-icon-container" class="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/10 border border-cyan-400/30 flex items-center justify-center text-cyan-300 shadow-[0_0_30px_rgba(56,189,248,0.25)]"></div>
 
               <div class="absolute top-4 left-4 flex items-center gap-2">
-                <span id="exp-status" class="px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-semibold border backdrop-blur-md"></span>
-                <span id="exp-badge" class="px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-semibold bg-blue-950/80 text-cyan-300 border border-cyan-500/30 uppercase font-['JetBrains_Mono'] backdrop-blur-md"></span>
+                <span id="exp-status" class="px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-semibold border backdrop-blur-md whitespace-nowrap"></span>
+                <span id="exp-badge" class="px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-semibold bg-blue-950/80 text-cyan-300 border border-cyan-500/30 uppercase font-['JetBrains_Mono'] backdrop-blur-md whitespace-nowrap shrink-0"></span>
               </div>
             </div>
 
@@ -852,6 +918,14 @@
                     Competition Overview
                   </h4>
                   <p id="exp-description" class="text-slate-300 text-xs sm:text-sm leading-relaxed whitespace-pre-line"></p>
+                </div>
+
+                <!-- Info Extended Banner Real DB -->
+                <div id="exp-extended-banner" class="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-amber-500/10 border border-amber-400/25 text-amber-300 text-xs font-medium shadow-[0_0_12px_rgba(245,158,11,0.08)] hidden">
+                  <svg class="w-4 h-4 shrink-0 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span id="exp-extended-date"></span>
                 </div>
 
                 <!-- Info Stats Real DB -->
@@ -1457,7 +1531,18 @@
         
         const statusEl = document.getElementById('exp-status');
         statusEl.textContent = data.status || '';
-        statusEl.className = 'px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-semibold border backdrop-blur-md ' + (data.statusBadgeClass || 'bg-slate-500/15 text-slate-300 border-slate-500/30');
+        statusEl.className = 'px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-semibold border backdrop-blur-md whitespace-nowrap ' + (data.statusBadgeClass || 'bg-slate-500/15 text-slate-300 border-slate-500/30');
+
+        // Extended Info Banner
+        const expExtBanner = document.getElementById('exp-extended-banner');
+        if (expExtBanner) {
+          if (data.isExtended && data.extendedDateLabel) {
+            document.getElementById('exp-extended-date').textContent = data.extendedDateLabel;
+            expExtBanner.classList.remove('hidden');
+          } else {
+            expExtBanner.classList.add('hidden');
+          }
+        }
 
         // Formats & Fees
         document.getElementById('exp-team').textContent = data.team || '-';
@@ -1488,8 +1573,25 @@
         if (data.timeline && data.timeline.length > 0) {
           data.timeline.forEach(item => {
             const div = document.createElement('div');
-            div.className = 'rounded-xl bg-white/[0.02] border border-white/[0.05] p-2.5 flex flex-col';
-            div.innerHTML = `<span class="text-[11px] text-slate-400 font-medium">${item.phase}</span><span class="text-xs font-semibold text-slate-200 mt-0.5">${item.date}</span>`;
+            if (item.is_extended && item.extended_date) {
+              div.className = 'rounded-xl bg-amber-500/10 border border-amber-400/30 p-2.5 flex flex-col col-span-1 sm:col-span-2 shadow-[0_0_15px_rgba(245,158,11,0.12)]';
+              div.innerHTML = `
+                <div class="flex items-center justify-between gap-1 mb-0.5">
+                  <span class="text-[11px] text-amber-300 font-semibold flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    ${item.phase}
+                  </span>
+                  <span class="text-[9px] uppercase tracking-wider font-bold text-amber-300 bg-amber-400/20 border border-amber-400/30 px-1.5 py-0.5 rounded-full font-['JetBrains_Mono']">Extended</span>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 mt-0.5">
+                  <span class="text-xs line-through opacity-50 text-slate-400 font-['JetBrains_Mono']">${item.date}</span>
+                  <span class="text-xs font-bold text-amber-300 font-['JetBrains_Mono']">${item.extended_date}</span>
+                </div>
+              `;
+            } else {
+              div.className = 'rounded-xl bg-white/[0.02] border border-white/[0.05] p-2.5 flex flex-col';
+              div.innerHTML = `<span class="text-[11px] text-slate-400 font-medium">${item.phase}</span><span class="text-xs font-semibold text-slate-200 mt-0.5">${item.date}</span>`;
+            }
             timelineList.appendChild(div);
           });
           timelineWrapper.classList.remove('hidden');
@@ -1505,7 +1607,8 @@
           regBtn.className = 'exp-fade-item px-4 py-2.5 text-xs sm:text-sm rounded-full font-bold bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-[0_4px_16px_rgba(37,99,235,0.4)] transition-all shrink-0 cursor-pointer inline-flex items-center gap-1.5';
         } else {
           regBtn.removeAttribute('href');
-          regBtn.innerHTML = `<span>${data.status || 'Registration Closed'}</span>`;
+          const disabledBtnText = (data.status === 'Competition Ended' || data.status === 'Results Announced') ? 'Registration Closed' : (data.status || 'Registration Closed');
+          regBtn.innerHTML = `<span>${disabledBtnText}</span>`;
           regBtn.className = 'exp-fade-item px-4 py-2.5 text-xs sm:text-sm rounded-full font-bold bg-slate-800/80 text-slate-400 border border-white/5 transition-all shrink-0 cursor-not-allowed inline-flex items-center gap-1.5';
         }
 

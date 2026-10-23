@@ -218,15 +218,19 @@
           <div class="det-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
               <h2>Competition Details</h2>
               @php
-                  $detailsBadge = match($competition->status) {
-                      'registration_open' => ['label' => 'Registration Open', 'bg' => 'rgba(16, 185, 129, 0.15)', 'color' => '#10b981', 'border' => 'rgba(16, 185, 129, 0.3)'],
-                      'ongoing' => ['label' => 'Ongoing', 'bg' => 'rgba(56, 189, 248, 0.15)', 'color' => '#38bdf8', 'border' => 'rgba(56, 189, 248, 0.3)'],
-                      'completed' => ['label' => 'Competition Ended', 'bg' => 'rgba(148, 163, 184, 0.15)', 'color' => '#94a3b8', 'border' => 'rgba(148, 163, 184, 0.3)'],
-                      'upcoming' => ['label' => 'Upcoming', 'bg' => 'rgba(251, 191, 36, 0.15)', 'color' => '#fbbf24', 'border' => 'rgba(251, 191, 36, 0.3)'],
-                      default => ['label' => 'Registration Closed', 'bg' => 'rgba(244, 63, 94, 0.15)', 'color' => '#f43f5e', 'border' => 'rgba(244, 63, 94, 0.3)'],
-                  };
+                  $isExtended = $competition->isExtended();
+                  $detailsBadge = $isExtended
+                      ? ['label' => $competition->extended_status_label, 'bg' => 'rgba(245, 158, 11, 0.15)', 'color' => '#fbbf24', 'border' => 'rgba(245, 158, 11, 0.35)']
+                      : match($competition->status) {
+                          'extended' => ['label' => $competition->extended_status_label ?: 'Extended', 'bg' => 'rgba(245, 158, 11, 0.15)', 'color' => '#fbbf24', 'border' => 'rgba(245, 158, 11, 0.35)'],
+                          'registration_open' => ['label' => 'Registration Open', 'bg' => 'rgba(16, 185, 129, 0.15)', 'color' => '#10b981', 'border' => 'rgba(16, 185, 129, 0.3)'],
+                          'ongoing' => ['label' => 'Ongoing', 'bg' => 'rgba(56, 189, 248, 0.15)', 'color' => '#38bdf8', 'border' => 'rgba(56, 189, 248, 0.3)'],
+                          'completed' => ['label' => 'Competition Ended', 'bg' => 'rgba(148, 163, 184, 0.15)', 'color' => '#94a3b8', 'border' => 'rgba(148, 163, 184, 0.3)'],
+                          'upcoming' => ['label' => 'Upcoming', 'bg' => 'rgba(251, 191, 36, 0.15)', 'color' => '#fbbf24', 'border' => 'rgba(251, 191, 36, 0.3)'],
+                          default => ['label' => 'Registration Closed', 'bg' => 'rgba(244, 63, 94, 0.15)', 'color' => '#f43f5e', 'border' => 'rgba(244, 63, 94, 0.3)'],
+                      };
                   $detBtnLabel = match($competition->status) {
-                      'completed' => 'Competition Ended',
+                      'completed' => 'Registration Closed',
                       'ongoing' => 'Ongoing',
                       'upcoming' => 'Coming Soon',
                       default => 'Registration Closed',
@@ -266,6 +270,24 @@
                           {{ $competition->registration_fee > 0 ? 'IDR ' . number_format($competition->registration_fee, 0, ',', '.') : 'Free' }}
                       </span>
                   </div>
+
+                  @if($competition->registration_close_at || $competition->extended_registration_close_at)
+                  <div class="info-item">
+                      <span class="info-label"><i class="fi fi-rr-clock"></i> Registration Deadline</span>
+                      <span class="info-value">
+                          @if($isExtended && $competition->extended_registration_close_at)
+                              <span style="text-decoration: line-through; opacity: 0.5; font-size: 0.85rem; margin-right: 0.35rem;">
+                                  {{ $competition->registration_close_at ? $competition->registration_close_at->format('d M Y, H:i') : '' }}
+                              </span>
+                              <span style="color: #fbbf24; font-weight: 700;">
+                                  {{ $competition->extended_registration_close_at->format('d M Y, H:i') }} WIB
+                              </span>
+                          @else
+                              {{ $competition->effective_registration_close_at ? $competition->effective_registration_close_at->format('F j, Y, H:i') . ' WIB' : 'TBA' }}
+                          @endif
+                      </span>
+                  </div>
+                  @endif
 
                   <div class="info-item">
                       <span class="info-label"><i class="fi fi-rr-calendar"></i> Event Date</span>

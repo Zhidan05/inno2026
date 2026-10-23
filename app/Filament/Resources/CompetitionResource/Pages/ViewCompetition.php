@@ -22,22 +22,29 @@ class ViewCompetition extends ViewRecord
                             ->weight('bold'),
                         Infolists\Components\TextEntry::make('status')
                             ->badge()
-                            ->formatStateUsing(fn (string $state): string => match ($state) {
-                                'registration_open' => 'Registration Open',
-                                'registration_closed' => 'Registration Closed',
-                                'upcoming' => 'Upcoming',
-                                'ongoing' => 'Ongoing',
-                                'completed' => 'Completed',
-                                'results_published' => 'Results Published',
-                                'draft' => 'Draft',
-                                'inactive' => 'Inactive',
-                                default => ucfirst(str_replace('_', ' ', $state)),
+                            ->formatStateUsing(function (string $state, $record): string {
+                                if ($record->isExtended()) {
+                                    return $record->extended_status_label;
+                                }
+
+                                return match ($state) {
+                                    'extended' => $record->extended_status_label ?: 'Extended',
+                                    'registration_open' => 'Registration Open',
+                                    'registration_closed' => 'Registration Closed',
+                                    'upcoming' => 'Upcoming',
+                                    'ongoing' => 'Ongoing',
+                                    'completed' => 'Completed',
+                                    'results_published' => 'Results Published',
+                                    'draft' => 'Draft',
+                                    'inactive' => 'Inactive',
+                                    default => ucfirst(str_replace('_', ' ', $state)),
+                                };
                             })
                             ->colors([
+                                'warning' => fn ($state, $record) => $record->isExtended() || $state === 'extended' || $state === 'upcoming',
                                 'secondary' => 'draft',
-                                'success' => fn ($state) => in_array($state, ['registration_open', 'results_published']),
+                                'success' => fn ($state, $record) => ! $record->isExtended() && in_array($state, ['registration_open', 'results_published']),
                                 'danger' => 'registration_closed',
-                                'warning' => 'upcoming',
                                 'primary' => 'ongoing',
                                 'gray' => fn ($state) => in_array($state, ['completed', 'inactive']),
                             ]),
@@ -59,6 +66,10 @@ class ViewCompetition extends ViewRecord
                             ->dateTime(),
                         Infolists\Components\TextEntry::make('registration_close_at')
                             ->dateTime(),
+                        Infolists\Components\TextEntry::make('extended_registration_close_at')
+                            ->label('Extended Registration Deadline')
+                            ->dateTime()
+                            ->visible(fn ($record) => ! empty($record->extended_registration_close_at)),
                         Infolists\Components\TextEntry::make('competition_start_at')
                             ->dateTime(),
                         Infolists\Components\TextEntry::make('competition_end_at')

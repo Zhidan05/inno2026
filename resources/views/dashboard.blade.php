@@ -526,15 +526,19 @@
               @php
                   $userReg = $latestRegistrations->where('competition_id', $comp->id)->first();
                   $isOpen = $comp->isRegistrationOpen();
-                  $dashStatusBadge = match($comp->status) {
-                      'registration_open' => ['label' => 'OPEN', 'bg' => 'rgba(16, 185, 129, 0.12)', 'color' => '#10b981', 'border' => 'rgba(16, 185, 129, 0.25)'],
-                      'ongoing' => ['label' => 'ONGOING', 'bg' => 'rgba(56, 189, 248, 0.12)', 'color' => '#38bdf8', 'border' => 'rgba(56, 189, 248, 0.25)'],
-                      'completed' => ['label' => 'ENDED', 'bg' => 'rgba(148, 163, 184, 0.12)', 'color' => '#94a3b8', 'border' => 'rgba(148, 163, 184, 0.25)'],
-                      'upcoming' => ['label' => 'UPCOMING', 'bg' => 'rgba(251, 191, 36, 0.12)', 'color' => '#fbbf24', 'border' => 'rgba(251, 191, 36, 0.25)'],
-                      default => ['label' => 'CLOSED', 'bg' => 'rgba(244, 63, 94, 0.12)', 'color' => '#f43f5e', 'border' => 'rgba(244, 63, 94, 0.25)'],
-                  };
+                  $isExtended = $comp->isExtended();
+                  $dashStatusBadge = $isExtended
+                      ? ['label' => 'EXTENDED', 'bg' => 'rgba(245, 158, 11, 0.15)', 'color' => '#fbbf24', 'border' => 'rgba(245, 158, 11, 0.3)']
+                      : match($comp->status) {
+                          'extended' => ['label' => 'EXTENDED', 'bg' => 'rgba(245, 158, 11, 0.15)', 'color' => '#fbbf24', 'border' => 'rgba(245, 158, 11, 0.3)'],
+                          'registration_open' => ['label' => 'OPEN', 'bg' => 'rgba(16, 185, 129, 0.12)', 'color' => '#10b981', 'border' => 'rgba(16, 185, 129, 0.25)'],
+                          'ongoing' => ['label' => 'ONGOING', 'bg' => 'rgba(56, 189, 248, 0.12)', 'color' => '#38bdf8', 'border' => 'rgba(56, 189, 248, 0.25)'],
+                          'completed' => ['label' => 'ENDED', 'bg' => 'rgba(148, 163, 184, 0.12)', 'color' => '#94a3b8', 'border' => 'rgba(148, 163, 184, 0.25)'],
+                          'upcoming' => ['label' => 'UPCOMING', 'bg' => 'rgba(251, 191, 36, 0.12)', 'color' => '#fbbf24', 'border' => 'rgba(251, 191, 36, 0.25)'],
+                          default => ['label' => 'CLOSED', 'bg' => 'rgba(244, 63, 94, 0.12)', 'color' => '#f43f5e', 'border' => 'rgba(244, 63, 94, 0.25)'],
+                      };
                   $btnLabel = match($comp->status) {
-                      'completed' => 'Competition Ended',
+                      'completed' => 'Registration Closed',
                       'ongoing' => 'Ongoing',
                       'upcoming' => 'Coming Soon',
                       default => 'Registration Closed',
@@ -559,6 +563,11 @@
                       <div><i class="fi fi-rr-calendar"></i> {{ $comp->competition_start_at ? $comp->competition_start_at->format('M j, Y') : 'TBA' }}</div>
                       <div><i class="fi fi-rr-marker"></i> {{ $comp->location ?? 'Online' }}</div>
                       <div><i class="fi fi-rr-money-bill-wave"></i> {{ $comp->isFree() ? 'FREE' : 'IDR ' . number_format($comp->registration_fee, 0, ',', '.') }}</div>
+                      @if($isExtended && $comp->extended_registration_close_at)
+                          <div style="color: #fbbf24; font-size: 0.75rem; grid-column: span 2; display: flex; align-items: center; gap: 0.35rem; font-weight: 600;">
+                              <i class="fi fi-rr-clock"></i> Extended to {{ $comp->extended_registration_close_at->format('M j, Y H:i') }} WIB
+                          </div>
+                      @endif
                   </div>
                   
                   <div class="dash-action-row">
