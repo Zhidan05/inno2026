@@ -51,7 +51,7 @@ class ImageOptimizationService
             $maxUploadBytes = (int) config('image_optimization.max_upload_size_kb', 10240) * 1024;
             if ($fileSize > $maxUploadBytes) {
                 throw new InvalidArgumentException(sprintf(
-                    'Ukuran file (%s MB) melebihi batas maksimum %s MB.',
+                    'File size (%s MB) exceeds maximum limit of %s MB.',
                     round($fileSize / 1048576, 2),
                     round($maxUploadBytes / 1048576, 2)
                 ));
@@ -74,7 +74,7 @@ class ImageOptimizationService
 
             // Ensure file is an actual supported raster image
             if (! in_array($mimeType, self::RASTER_MIME_TYPES, true)) {
-                throw new InvalidArgumentException("Format file tidak didukung atau bukan gambar yang valid (MIME: {$mimeType}).");
+                throw new InvalidArgumentException("File format is not supported or not a valid image (MIME: {$mimeType}).");
             }
 
             // Process raster image to WebP
@@ -119,7 +119,7 @@ class ImageOptimizationService
             return [$tempPath, basename($file), (int) Storage::disk($disk)->size($file)];
         }
 
-        throw new InvalidArgumentException("File sumber tidak ditemukan: {$file}");
+        throw new InvalidArgumentException("Source file not found: {$file}");
     }
 
     /**
@@ -135,13 +135,13 @@ class ImageOptimizationService
     ): string {
         $fileContents = file_get_contents($sourcePath);
         if ($fileContents === false || strlen($fileContents) === 0) {
-            throw new RuntimeException('Gagal membaca data file gambar.');
+            throw new RuntimeException('Failed to read image file data.');
         }
 
         // Check image header / dimensions using getimagesize
         $imageSize = @getimagesize($sourcePath);
         if ($imageSize === false) {
-            throw new InvalidArgumentException('File bukan file gambar raster yang valid atau data gambar rusak.');
+            throw new InvalidArgumentException('File is not a valid raster image or image data is corrupted.');
         }
 
         $origWidth = $imageSize[0];
@@ -150,7 +150,7 @@ class ImageOptimizationService
         // Create GD resource from string
         $image = @imagecreatefromstring($fileContents);
         if (! $image) {
-            throw new RuntimeException('Gagal memproses gambar dengan library GD.');
+            throw new RuntimeException('Failed to process image with GD library.');
         }
 
         $tempWebpPath = tempnam(sys_get_temp_dir(), 'inno_webp_');
@@ -196,7 +196,7 @@ class ImageOptimizationService
                 // Generate WebP into temp file
                 $success = imagewebp($image, $tempWebpPath, $currentQuality);
                 if (! $success) {
-                    throw new RuntimeException('Gagal melakukan kompresi WebP.');
+                    throw new RuntimeException('Failed to compress image to WebP.');
                 }
 
                 clearstatcache(true, $tempWebpPath);
@@ -214,7 +214,7 @@ class ImageOptimizationService
             }
 
             if (! $converted || ! file_exists($tempWebpPath) || filesize($tempWebpPath) === 0) {
-                throw new RuntimeException('Gagal menghasilkan file WebP yang valid.');
+                throw new RuntimeException('Failed to generate a valid WebP file.');
             }
 
             // Save to final storage
@@ -313,7 +313,7 @@ class ImageOptimizationService
         fclose($handle);
 
         if ($header !== '%PDF') {
-            throw new InvalidArgumentException('File PDF tidak valid atau rusak.');
+            throw new InvalidArgumentException('Invalid or corrupted PDF file.');
         }
 
         $uuid = Str::uuid()->toString();
@@ -338,11 +338,11 @@ class ImageOptimizationService
             stripos($content, '<!ENTITY') !== false ||
             stripos($content, 'SYSTEM') !== false
         ) {
-            throw new InvalidArgumentException('File SVG mengandung script atau entitas berbahaya.');
+            throw new InvalidArgumentException('SVG file contains malicious scripts or entities.');
         }
 
         if (stripos($content, '<svg') === false) {
-            throw new InvalidArgumentException('File bukan SVG yang valid.');
+            throw new InvalidArgumentException('File is not a valid SVG.');
         }
 
         $uuid = Str::uuid()->toString();
@@ -382,7 +382,7 @@ class ImageOptimizationService
                 'new_path' => $relativePath,
                 'original_size' => 0,
                 'new_size' => 0,
-                'reason' => 'File tidak ditemukan di disk.',
+                'reason' => 'File not found on disk.',
             ];
         }
 
@@ -396,7 +396,7 @@ class ImageOptimizationService
                 'new_path' => $relativePath,
                 'original_size' => Storage::disk($disk)->size($relativePath),
                 'new_size' => Storage::disk($disk)->size($relativePath),
-                'reason' => 'File adalah dokumen PDF (dilewati).',
+                'reason' => 'File is a PDF document (skipped).',
             ];
         }
 
@@ -407,7 +407,7 @@ class ImageOptimizationService
                 'new_path' => $relativePath,
                 'original_size' => Storage::disk($disk)->size($relativePath),
                 'new_size' => Storage::disk($disk)->size($relativePath),
-                'reason' => 'File sudah berformat WebP.',
+                'reason' => 'File is already in WebP format.',
             ];
         }
 
@@ -446,7 +446,7 @@ class ImageOptimizationService
                 'new_path' => $relativePath,
                 'original_size' => $originalSize,
                 'new_size' => 0,
-                'reason' => 'Gagal konversi: '.$e->getMessage(),
+                'reason' => 'Conversion failed: '.$e->getMessage(),
             ];
         } finally {
             if (file_exists($tempSource)) {

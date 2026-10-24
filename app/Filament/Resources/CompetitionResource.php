@@ -389,7 +389,7 @@ class CompetitionResource extends Resource
                             ->success()
                             ->send();
                     }),
-                Tables\Actions\ViewAction::make()->label('Detail')->icon('heroicon-m-eye')->color('secondary'),
+                Tables\Actions\ViewAction::make()->label('View Details')->icon('heroicon-m-eye')->color('secondary'),
                 Tables\Actions\EditAction::make()
                     ->visible(fn () => ! auth()->user()?->hasRole(UserRole::JUDGE->value) || auth()->user()?->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])),
             ])

@@ -134,7 +134,7 @@ class RegistrationResource extends Resource
                     ->required()
                     ->maxLength(255),
                 Forms\Components\Select::make('payment_method_id')
-                    ->label('Metode Pembayaran')
+                    ->label('Payment Method')
                     ->relationship('paymentMethod', 'name')
                     ->searchable()
                     ->preload()
@@ -238,7 +238,7 @@ class RegistrationResource extends Resource
                     ->openUrlInNewTab()
                     ->visible(fn () => auth()->user()?->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])),
                 Tables\Columns\TextColumn::make('paymentMethod.name')
-                    ->label('Metode Bayar')
+                    ->label('Payment Method')
                     ->placeholder('-')
                     ->toggleable()
                     ->visible(fn () => auth()->user()?->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])),

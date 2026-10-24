@@ -65,13 +65,13 @@ class MigrateLegacyImagesToWebp extends Command
         $this->info('=====================================================');
 
         if ($dryRun) {
-            $this->warn('MODE: DRY-RUN (Tidak ada file atau database yang diubah).');
+            $this->warn('MODE: DRY-RUN (No files or database records will be modified).');
         } else {
             $this->warn('MODE: LIVE MIGRATION');
             if ($deleteOriginals) {
-                $this->warn('PERINGATAN: File asli non-WebP akan dihapus setelah konversi berhasil diverifikasi.');
+                $this->warn('WARNING: Original non-WebP files will be deleted after verified conversion.');
             } else {
-                $this->info('File asli non-WebP tetap disimpan sebagai backup.');
+                $this->info('Original non-WebP files will be retained as backup.');
             }
         }
 
@@ -168,13 +168,13 @@ class MigrateLegacyImagesToWebp extends Command
         bool $deleteOriginals,
         array $options = []
     ): void {
-        $this->line("<comment>Memeriksa {$label}...</comment>");
+        $this->line("<comment>Checking {$label}...</comment>");
 
         $query = $modelClass::query()->whereNotNull($attribute)->where($attribute, '!=', '');
         $count = $query->count();
 
         if ($count === 0) {
-            $this->line("  - Tidak ada record pada {$label}.");
+            $this->line("  - No records found for {$label}.");
 
             return;
         }
@@ -207,7 +207,7 @@ class MigrateLegacyImagesToWebp extends Command
                 }
 
                 if (! Storage::disk($this->disk)->exists($currentPath)) {
-                    $this->warn("  [MISSING] Record #{$record->getKey()}: file {$currentPath} tidak ada di storage.");
+                    $this->warn("  [MISSING] Record #{$record->getKey()}: file {$currentPath} does not exist in storage.");
                     $this->totalSkipped++;
 
                     continue;
@@ -217,7 +217,7 @@ class MigrateLegacyImagesToWebp extends Command
                 $res = $this->optimizer->optimizeExistingFile($this->disk, $currentPath, $options);
 
                 if (! $res['converted']) {
-                    if ($res['reason'] && str_contains($res['reason'], 'dilewati')) {
+                    if ($res['reason'] && (str_contains($res['reason'], 'skipped') || str_contains($res['reason'], 'already in WebP'))) {
                         $this->totalSkipped++;
                     } else {
                         $this->error("  [FAILED] Record #{$record->getKey()}: {$res['reason']}");
@@ -232,7 +232,7 @@ class MigrateLegacyImagesToWebp extends Command
 
                 if ($dryRun) {
                     $this->info(sprintf(
-                        '  [DRY-RUN] Record #%s: %s (%s KB) -> %s (%s KB) [Hemat: %s KB]',
+                        '  [DRY-RUN] Record #%s: %s (%s KB) -> %s (%s KB) [Saved: %s KB]',
                         $record->getKey(),
                         $currentPath,
                         round($res['original_size'] / 1024, 1),
@@ -253,7 +253,7 @@ class MigrateLegacyImagesToWebp extends Command
                         $record->save();
 
                         $this->info(sprintf(
-                            '  [OK] Record #%s: %s -> %s (Hemat: %s KB)',
+                            '  [OK] Record #%s: %s -> %s (Saved: %s KB)',
                             $record->getKey(),
                             $currentPath,
                             $newPath,
@@ -268,7 +268,7 @@ class MigrateLegacyImagesToWebp extends Command
                             Storage::disk($this->disk)->delete($currentPath);
                         }
                     } else {
-                        $this->error("  [VERIFICATION FAILED] Record #{$record->getKey()}: File hasil konversi tidak valid. Pembaharuan DB dibatalkan.");
+                        $this->error("  [VERIFICATION FAILED] Record #{$record->getKey()}: Converted file is invalid. Database update aborted.");
                         $this->totalFailed++;
                     }
                 }

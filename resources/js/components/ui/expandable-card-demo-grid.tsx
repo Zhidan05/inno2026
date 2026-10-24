@@ -28,23 +28,23 @@ const defaultCompetitions: CompetitionCardItem[] = [
     category: "Hardware & Innovation",
     badge: "TEAM",
     status: "registration_open",
-    description: "Ajang unjuk kreativitas dan inovasi yang memberikan kesempatan kepada peserta untuk menampilkan karya cipta dan prototipe teknologi tepat guna berbasis elektro, IoT, dan otomasi cerdas.",
+    description: "An innovation showcase giving participants the opportunity to demonstrate creative prototypes and technologies based on electrical engineering, IoT, and intelligent automation.",
     team: "1 - 6 Members",
-    fee: "IDR 170.000",
+    fee: "IDR 170,000",
     banner: "/images/gallery/innoexpo.jpg",
     timeline: [
-      { phase: "Gelombang Pendaftaran", date: "1 Januari - 28 Februari 2026" },
-      { phase: "Pengumpulan Proposal & Video Karya", date: "1 - 10 Maret 2026" },
-      { phase: "Pengumuman Finalis Expo", date: "18 Maret 2026" },
-      { phase: "Exhibition & Grand Final Presentation", date: "25 Maret 2026" }
+      { phase: "Registration Period", date: "January 1 - February 28, 2026" },
+      { phase: "Proposal & Video Submission", date: "March 1 - 10, 2026" },
+      { phase: "Expo Finalists Announcement", date: "March 18, 2026" },
+      { phase: "Exhibition & Grand Final Presentation", date: "March 25, 2026" }
     ],
     rules: [
-      "Peserta merupakan mahasiswa/i aktif D3/D4/S1 perguruan tinggi se-Indonesia.",
-      "Karya berupa prototipe perangkat keras (hardware), sistem embedded, atau integrasi IoT terapan.",
-      "Prototipe harus orisinal dan belum pernah menjuarai kompetisi tingkat nasional serupa.",
-      "Maksimal 6 anggota per tim didampingi 1 dosen pembimbing (opsional)."
+      "Participants must be active college students (Diploma / Undergraduate) across Indonesia.",
+      "Projects must be hardware prototypes, embedded systems, or applied IoT integrations.",
+      "Prototypes must be original and must not have won similar national-level competitions.",
+      "Maximum of 6 members per team accompanied by 1 optional faculty advisor."
     ],
-    prizes: "Total Hadiah Belasan Juta Rupiah + Piala Bergilir + Sertifikat Nasional IEEE"
+    prizes: "Millions of IDR Total Prize Pool + Rotating Trophy + IEEE National Certificates"
   },
   {
     name: "InnoCode Competition",
@@ -52,23 +52,23 @@ const defaultCompetitions: CompetitionCardItem[] = [
     category: "Algorithmic Challenge",
     badge: "SOLO / TEAM",
     status: "registration_open",
-    description: "Kompetisi pemrograman kompetitif yang menguji ketajaman logika, kecepatan berpikir komputasional, serta optimasi efisiensi algoritma dalam memecahkan permasalahan teknikal kompleks.",
+    description: "A competitive programming competition testing logical reasoning, computational speed, and algorithmic efficiency in solving complex technical challenges.",
     team: "1 - 2 Members",
-    fee: "IDR 120.000",
+    fee: "IDR 120,000",
     banner: "/images/gallery/innocode.jpg",
     timeline: [
-      { phase: "Pendaftaran Online", date: "1 Januari - 1 Maret 2026" },
-      { phase: "Warm-Up Session", date: "5 Maret 2026" },
-      { phase: "Preliminary Online Contest", date: "10 Maret 2026" },
-      { phase: "Final Onsite Competitive Arena", date: "24 Maret 2026" }
+      { phase: "Online Registration", date: "January 1 - March 1, 2026" },
+      { phase: "Warm-Up Session", date: "March 5, 2026" },
+      { phase: "Preliminary Online Contest", date: "March 10, 2026" },
+      { phase: "Final Onsite Competitive Arena", date: "March 24, 2026" }
     ],
     rules: [
-      "Terbuka untuk mahasiswa dan siswa SMA/SMK sederajat aktif.",
-      "Bahasa yang diperbolehkan: C++, Java, Python 3, Go.",
-      "Penilaian berdasarkan jumlah problem solve dan execution runtime penalty.",
-      "Dilarang keras menggunakan AI completion tools atau komunikasi eksternal saat contest aktif."
+      "Open to active high school/vocational school and university students.",
+      "Supported languages: C++, Java, Python 3, Go.",
+      "Scoring based on problem solve count and execution runtime penalties.",
+      "Strictly prohibited to use external AI completion tools or outside communication during active contests."
     ],
-    prizes: "Total Hadiah Jutaan Rupiah + Medali Kejuaraan + Sertifikat IEEE SB UNRI"
+    prizes: "Cash Prize Pool + Championship Medals + IEEE SB UNRI Certificates"
   },
   {
     name: "InnoFuture Paper Competition",
@@ -76,23 +76,23 @@ const defaultCompetitions: CompetitionCardItem[] = [
     category: "Scientific Paper",
     badge: "SOLO / TEAM",
     status: "registration_open",
-    description: "Kompetisi Karya Tulis Ilmiah tingkat nasional yang menantang akademisi muda untuk memaparkan gagasan kritis, riset empiris, dan rekayasa sains mutakhir menuju transisi energi berkelanjutan.",
+    description: "A national scientific paper competition challenging young scholars to present critical insights, empirical research, and advanced engineering toward sustainable energy transition.",
     team: "1 - 3 Members",
-    fee: "IDR 100.000",
+    fee: "IDR 100,000",
     banner: "/images/gallery/innopaper.jpg",
     timeline: [
-      { phase: "Pengumpulan Abstrak Gratis", date: "1 Januari - 15 Februari 2026" },
-      { phase: "Pengumuman Lolos Abstrak", date: "20 Februari 2026" },
-      { phase: "Pengumpulan Full Paper", date: "21 Februari - 12 Maret 2026" },
-      { phase: "Presentasi Karya Finalis", date: "24 Maret 2026" }
+      { phase: "Free Abstract Submission", date: "January 1 - February 15, 2026" },
+      { phase: "Abstract Acceptance Announcement", date: "February 20, 2026" },
+      { phase: "Full Paper Submission", date: "February 21 - March 12, 2026" },
+      { phase: "Finalists Presentation", date: "March 24, 2026" }
     ],
     rules: [
-      "Format paper mengikuti template standar IEEE Conference Manuscript Style.",
-      "Maksimal 3 orang per tim dengan 1 orang sebagai ketua tim.",
-      "Tingkat plagiarisme / Turnitin similarity maksimal 20% tanpa filter.",
-      "Karya belum pernah dipublikasikan di jurnal atau prosiding ber-ISBN/ISSN."
+      "Paper format must adhere to IEEE Conference Manuscript Style templates.",
+      "Maximum of 3 members per team with 1 designated team leader.",
+      "Turnitin similarity threshold maximum 20% without filters.",
+      "Work must not have been previously published in ISBN/ISSN indexed journals or proceedings."
     ],
-    prizes: "Trofi Juara + Uang Pembinaan + Publikasi Prosiding Terindeks"
+    prizes: "Championship Trophy + Research Grants + Indexed Conference Proceedings Publication"
   },
   {
     name: "InnoRace Line Follower",
@@ -100,23 +100,23 @@ const defaultCompetitions: CompetitionCardItem[] = [
     category: "Robotics & Automation",
     badge: "TEAM",
     status: "registration_open",
-    description: "Kompetisi balap robot line follower otomatis mikrokontroler berkecepatan tinggi yang dituntut bermanuver presisi melintasi rintangan lintasan rumit, perempatan, dan tanjakan tajam.",
+    description: "A high-speed autonomous microcontroller line-follower robot racing competition demanding precision maneuvering through complex track obstacles, crossings, and steep inclines.",
     team: "1 - 5 Members",
-    fee: "IDR 170.000",
+    fee: "IDR 170,000",
     banner: "/images/gallery/line_follower.jpg",
     timeline: [
-      { phase: "Registrasi Peserta", date: "1 Januari - 5 Maret 2026" },
-      { phase: "Technical Meeting & Track Reveal", date: "15 Maret 2026" },
-      { phase: "Uji Coba Lintasan (Free Practice)", date: "23 Maret 2026" },
-      { phase: "Race Day & Grand Final", date: "25 Maret 2026" }
+      { phase: "Participant Registration", date: "January 1 - March 5, 2026" },
+      { phase: "Technical Meeting & Track Reveal", date: "March 15, 2026" },
+      { phase: "Free Practice Track Session", date: "March 23, 2026" },
+      { phase: "Race Day & Grand Final", date: "March 25, 2026" }
     ],
     rules: [
-      "Robot beroperasi otomatis mandiri tanpa remote control selama race berlangsung.",
-      "Dimensi robot maksimal 20 cm x 20 cm dengan berat maksimal 1000 gram.",
-      "Tegangan baterai maksimal 12.6V (3S LiPo).",
-      "Sistem pertandingan menggunakan babak kualifikasi waktu dan eliminasi Head-to-Head."
+      "Robots must operate fully autonomously without remote control during race heats.",
+      "Maximum robot dimensions: 20 cm x 20 cm with maximum weight of 1000 grams.",
+      "Maximum battery voltage: 12.6V (3S LiPo).",
+      "Tournament format utilizes timed qualifying rounds and Head-to-Head elimination brackets."
     ],
-    prizes: "Piala Bergilir IEEE + Hadiah Tunai + Golden Ticket Eksibisi"
+    prizes: "Rotating IEEE Trophy + Cash Prizes + Exhibition Golden Tickets"
   },
   {
     name: "InnoVisual Poster Competition",
@@ -124,22 +124,22 @@ const defaultCompetitions: CompetitionCardItem[] = [
     category: "Visual & Infographic",
     badge: "SOLO / TEAM",
     status: "registration_open",
-    description: "Kompetisi desain poster ilmiah dan infografis teknologi yang memadukan estetika visual mutakhir, kedalaman data sains, dan kemampuan storytelling visual yang komunikatif.",
+    description: "A scientific poster and technology infographic competition combining cutting-edge visual aesthetics, scientific data rigor, and compelling visual storytelling.",
     team: "1 Member",
-    fee: "IDR 70.000",
+    fee: "IDR 70,000",
     banner: "/images/gallery/innovisual.jpg",
     timeline: [
-      { phase: "Pendaftaran & Karya", date: "1 Januari - 10 Maret 2026" },
-      { phase: "Voting Poster Favorit Online", date: "12 - 20 Maret 2026" },
-      { phase: "Penjurian Kurator Desain", date: "22 Maret 2026" },
-      { phase: "Pengumuman Pemenang", date: "26 Maret 2026" }
+      { phase: "Registration & Work Submission", date: "January 1 - March 10, 2026" },
+      { phase: "Online Favorite Poster Voting", date: "March 12 - 20, 2026" },
+      { phase: "Curator Panel Judging", date: "March 22, 2026" },
+      { phase: "Winners Announcement", date: "March 26, 2026" }
     ],
     rules: [
-      "Karya dibuat dalam format digital A3 (portrait), 300 DPI, format PDF dan PNG.",
-      "Karya orisinal dan tidak mengandung unsur SARA atau hak cipta pihak ketiga tanpa izin.",
-      "Desain mengedepankan keterbacaan data, hierarki informasi, dan estetika visual futuristik."
+      "Submissions must be in A3 digital format (portrait), 300 DPI, in PDF and PNG formats.",
+      "Work must be original without unauthorized third-party copyrighted assets.",
+      "Design prioritizes data readability, information hierarchy, and futuristic visual aesthetics."
     ],
-    prizes: "Uang Tunai + E-Certificate Prestasi Nasional + Pameran Galeri Virtual"
+    prizes: "Cash Awards + National Achievement E-Certificates + Virtual Gallery Exhibition"
   }
 ];
 

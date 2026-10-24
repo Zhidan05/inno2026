@@ -11,7 +11,7 @@ enum PaymentMethodType: string
     {
         return match ($this) {
             self::QRIS => 'QRIS',
-            self::BANK_TRANSFER => 'Transfer Bank',
+            self::BANK_TRANSFER => 'Bank Transfer',
         };
     }
 

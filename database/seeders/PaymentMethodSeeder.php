@@ -63,7 +63,7 @@ class PaymentMethodSeeder extends Seeder
             ['name' => 'QRIS InnoElectrica'],
             [
                 'type' => PaymentMethodType::QRIS,
-                'instructions' => 'Pindai kode QRIS menggunakan e-wallet atau mobile banking apa saja (BCA Mobile, Livin, GoPay, OVO, Dana). Pastikan nominal transfer sesuai dengan biaya pendaftaran.',
+                'instructions' => 'Scan the QRIS code using any supported e-wallet or mobile banking app (BCA Mobile, Livin, GoPay, OVO, Dana). Please ensure the transfer amount matches the exact registration fee.',
                 'is_active' => true,
                 'sort_order' => 1,
                 'qris_image' => $qrisRelativePath,
@@ -75,7 +75,7 @@ class PaymentMethodSeeder extends Seeder
             ['name' => 'Transfer Bank BCA'],
             [
                 'type' => PaymentMethodType::BANK_TRANSFER,
-                'instructions' => 'Mohon sertakan nama tim atau nama peserta pada berita transfer. Simpan bukti transfer dalam format JPG, PNG, atau PDF untuk diupload.',
+                'instructions' => 'Please include your team or participant name in the transfer remarks. Keep your transfer receipt in JPG, PNG, or PDF format to upload.',
                 'is_active' => true,
                 'sort_order' => 2,
                 'bank_name' => 'BCA',
@@ -89,7 +89,7 @@ class PaymentMethodSeeder extends Seeder
             ['name' => 'Transfer Bank Mandiri'],
             [
                 'type' => PaymentMethodType::BANK_TRANSFER,
-                'instructions' => 'Transfer dapat dilakukan via ATM atau Livin by Mandiri. Pastikan nama rekening tujuan adalah Panitia InnoElectrica.',
+                'instructions' => 'Transfer can be completed via ATM or Livin by Mandiri. Verify that the destination account name matches InnoElectrica UNRI.',
                 'is_active' => true,
                 'sort_order' => 3,
                 'bank_name' => 'Mandiri',

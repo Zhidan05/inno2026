@@ -42,42 +42,42 @@ class PaymentMethodResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Informasi Umum')
+                Forms\Components\Section::make('General Information')
                     ->schema([
                         Forms\Components\TextInput::make('name')
-                            ->label('Nama Metode Pembayaran')
-                            ->placeholder('Misal: QRIS InnoElectrica atau Transfer Bank BCA')
+                            ->label('Payment Method Name')
+                            ->placeholder('e.g. InnoElectrica QRIS or Bank Transfer BCA')
                             ->required()
                             ->maxLength(255),
                         Forms\Components\Select::make('type')
-                            ->label('Jenis Pembayaran')
+                            ->label('Payment Type')
                             ->options(PaymentMethodType::options())
                             ->default(PaymentMethodType::QRIS->value)
                             ->required()
                             ->live(),
                         Forms\Components\Textarea::make('instructions')
-                            ->label('Instruksi Pembayaran')
-                            ->placeholder('Petunjuk tambahan untuk peserta (opsional, misal berita transfer atau catatan pembayaran)')
+                            ->label('Payment Instructions')
+                            ->placeholder('Additional instructions for participants (optional, e.g. transfer notes or payment remarks)')
                             ->rows(3)
                             ->columnSpanFull(),
                         Forms\Components\Toggle::make('is_active')
-                            ->label('Status Aktif')
-                            ->helperText('Metode nonaktif tidak akan ditampilkan kepada peserta.')
+                            ->label('Active Status')
+                            ->helperText('Inactive methods will not be displayed to participants.')
                             ->default(true),
                         Forms\Components\TextInput::make('sort_order')
-                            ->label('Urutan Tampilan')
-                            ->helperText('Angka lebih kecil tampil lebih awal pada pilihan peserta.')
+                            ->label('Display Order')
+                            ->helperText('Lower numbers appear earlier in participant choices.')
                             ->numeric()
                             ->default(0)
                             ->required(),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Detail QRIS')
-                    ->description('Pengaturan gambar kode QRIS statis yang akan dipindai oleh peserta.')
+                Forms\Components\Section::make('QRIS Details')
+                    ->description('Configuration for the static QRIS code image to be scanned by participants.')
                     ->visible(fn (Forms\Get $get): bool => $get('type') === PaymentMethodType::QRIS->value)
                     ->schema([
                         Forms\Components\FileUpload::make('qris_image')
-                            ->label('Gambar Kode QRIS')
+                            ->label('QRIS Code Image')
                             ->image()
                             ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/jpg', 'image/webp'])
                             ->maxSize(10240)
@@ -87,27 +87,27 @@ class PaymentMethodResource extends Resource
                             ->required(fn (Forms\Get $get, ?PaymentMethod $record): bool => $get('type') === PaymentMethodType::QRIS->value && ! $record?->qris_image)
                             ->saveUploadedFileUsing(ImageOptimizationService::filamentUploadHandler('payment-methods', ['is_qris' => true]))
                             ->columnSpanFull()
-                            ->helperText('Upload gambar kode QRIS (PNG, JPG, WEBP). Gambar otomatis dioptimalkan ke WebP berkualitas tinggi tanpa mengurangi ketajaman scan.'),
+                            ->helperText('Upload QRIS code image (PNG, JPG, WEBP). Automatically optimized to high-quality WebP preserving scan sharpness.'),
                     ]),
 
-                Forms\Components\Section::make('Detail Rekening Bank')
-                    ->description('Pengaturan informasi rekening untuk transfer bank manual.')
+                Forms\Components\Section::make('Bank Account Details')
+                    ->description('Account information settings for manual bank transfer.')
                     ->visible(fn (Forms\Get $get): bool => $get('type') === PaymentMethodType::BANK_TRANSFER->value)
                     ->schema([
                         Forms\Components\TextInput::make('bank_name')
-                            ->label('Nama Bank')
-                            ->placeholder('Contoh: BCA, Mandiri, BRI, BNI')
+                            ->label('Bank Name')
+                            ->placeholder('e.g. BCA, Mandiri, BRI, BNI')
                             ->required(fn (Forms\Get $get): bool => $get('type') === PaymentMethodType::BANK_TRANSFER->value)
                             ->maxLength(255),
                         Forms\Components\TextInput::make('account_number')
-                            ->label('Nomor Rekening')
-                            ->placeholder('Contoh: 0123456789')
+                            ->label('Account Number')
+                            ->placeholder('e.g. 0123456789')
                             ->required(fn (Forms\Get $get): bool => $get('type') === PaymentMethodType::BANK_TRANSFER->value)
                             ->maxLength(255)
-                            ->helperText('Tersimpan sebagai teks string agar angka 0 di depan tetap utuh.'),
+                            ->helperText('Stored as a text string to preserve leading zeros.'),
                         Forms\Components\TextInput::make('account_holder_name')
-                            ->label('Nama Pemilik Rekening')
-                            ->placeholder('Contoh: Panitia InnoElectrica')
+                            ->label('Account Holder Name')
+                            ->placeholder('e.g. InnoElectrica Committee')
                             ->required(fn (Forms\Get $get): bool => $get('type') === PaymentMethodType::BANK_TRANSFER->value)
                             ->maxLength(255),
                     ])->columns(3),
@@ -119,41 +119,41 @@ class PaymentMethodResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Nama Metode')
+                    ->label('Method Name')
                     ->searchable()
                     ->sortable()
                     ->weight('bold'),
                 Tables\Columns\TextColumn::make('type')
-                    ->label('Jenis')
+                    ->label('Type')
                     ->badge()
-                    ->formatStateUsing(fn ($state) => $state instanceof PaymentMethodType ? $state->label() : ($state === 'qris' ? 'QRIS' : 'Transfer Bank'))
+                    ->formatStateUsing(fn ($state) => $state instanceof PaymentMethodType ? $state->label() : ($state === 'qris' ? 'QRIS' : 'Bank Transfer'))
                     ->color(fn ($state) => ($state instanceof PaymentMethodType ? $state->value : $state) === 'qris' ? 'warning' : 'info'),
                 Tables\Columns\TextColumn::make('detail')
-                    ->label('Detail Rekening / QRIS')
+                    ->label('Account / QRIS Details')
                     ->state(function (PaymentMethod $record): string {
                         if ($record->isQris()) {
-                            return $record->qris_image ? 'Kode QRIS Terlampir' : 'Belum Ada Gambar';
+                            return $record->qris_image ? 'QRIS Code Attached' : 'No Image Uploaded';
                         }
 
                         return "{$record->bank_name} - {$record->account_number} ({$record->account_holder_name})";
                     }),
                 Tables\Columns\ToggleColumn::make('is_active')
-                    ->label('Aktif'),
+                    ->label('Active'),
                 Tables\Columns\TextColumn::make('sort_order')
-                    ->label('Urutan')
+                    ->label('Order')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Dibuat')
+                    ->label('Created At')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('type')
-                    ->label('Jenis Pembayaran')
+                    ->label('Payment Type')
                     ->options(PaymentMethodType::options()),
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Status Aktif'),
+                    ->label('Active Status'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -162,8 +162,8 @@ class PaymentMethodResource extends Resource
                         if ($record->registrations()->exists()) {
                             Notification::make()
                                 ->danger()
-                                ->title('Tidak Dapat Menghapus Metode Pembayaran')
-                                ->body('Metode pembayaran ini tidak dapat dihapus karena sudah memiliki riwayat pendaftaran. Silakan nonaktifkan metode pembayaran ini daripada menghapusnya.')
+                                ->title('Cannot Delete Payment Method')
+                                ->body('This payment method cannot be deleted because it is referenced by existing registration records. Please deactivate this payment method instead of deleting it to preserve historical integrity.')
                                 ->persistent()
                                 ->send();
 
@@ -179,8 +179,8 @@ class PaymentMethodResource extends Resource
                                 if ($record->registrations()->exists()) {
                                     Notification::make()
                                         ->danger()
-                                        ->title('Penghapusan Massal Dibatalkan')
-                                        ->body('Satu atau lebih metode pembayaran terpilih sudah memiliki riwayat pendaftaran. Aksi dibatalkan untuk menjaga integritas data.')
+                                        ->title('Bulk Deletion Cancelled')
+                                        ->body('One or more selected payment methods are referenced by existing registrations. The action was cancelled to preserve historical data integrity.')
                                         ->persistent()
                                         ->send();
 

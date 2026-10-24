@@ -14,8 +14,8 @@ class ManagePaymentMethods extends ManageRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('Tambah Metode Pembayaran')
-                ->modalHeading('Tambah Metode Pembayaran Baru'),
+                ->label('Add Payment Method')
+                ->modalHeading('Add New Payment Method'),
         ];
     }
 }

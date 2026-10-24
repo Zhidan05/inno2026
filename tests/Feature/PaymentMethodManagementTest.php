@@ -30,7 +30,7 @@ test('admin can create multiple payment methods including QRIS and Bank Transfer
     $qris = PaymentMethod::create([
         'name' => 'QRIS Utama InnoElectrica',
         'type' => PaymentMethodType::QRIS,
-        'instructions' => 'Scan dengan GoPay atau BCA Mobile',
+        'instructions' => 'Scan with GoPay or BCA Mobile',
         'is_active' => true,
         'sort_order' => 1,
         'qris_image' => 'payment-methods/dummy-qris.webp',
@@ -156,7 +156,7 @@ test('policy prevents deleting a payment method that is referenced by existing r
     expect($policy->delete($this->admin, $unreferencedMethod))->toBeTrue();
 });
 
-test('participant sees active payment methods and prominent Informasi Penting notice on registration page', function () {
+test('participant sees active payment methods and prominent Important Payment Information notice on registration page', function () {
     $competition = Competition::factory()->create([
         'registration_fee' => 75000,
         'registration_type' => 'individual_or_team',
@@ -199,9 +199,9 @@ test('participant sees active payment methods and prominent Informasi Penting no
     $response->assertOk();
 
     // Prominent note text must be visible
-    $response->assertSee('Informasi Penting Pembayaran');
-    $response->assertSee('Metode pembayaran QRIS dan transfer bank yang tersedia merupakan metode pembayaran statis');
-    $response->assertSee('1 × 24 jam');
+    $response->assertSee('Important Payment Information');
+    $response->assertSee('The available QRIS and bank transfer payment methods are static payment methods');
+    $response->assertSee('1 × 24 hours');
     $response->assertSee('inno-ieee.sb@unri.ac.id');
     $response->assertSee('@innoelectricaunri');
 
@@ -209,7 +209,7 @@ test('participant sees active payment methods and prominent Informasi Penting no
     $response->assertSee('QRIS Resmi InnoElectrica');
     $response->assertSee('Transfer Bank BNI Khusus');
     $response->assertSee('0987654321');
-    $response->assertSee('Salin');
+    $response->assertSee('Copy');
 
     // Inactive method must NOT be visible
     $response->assertDontSee('Metode Rahasia Nonaktif');

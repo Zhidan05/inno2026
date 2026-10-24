@@ -103,7 +103,7 @@
 
       // 1. Populate text and metadata into modal
       const titleEl = document.getElementById('exp-title');
-      if (titleEl) titleEl.textContent = data.name || 'Kompetisi';
+      if (titleEl) titleEl.textContent = data.name || 'Competition';
       
       // Description
       const descEl = document.getElementById('exp-description');
