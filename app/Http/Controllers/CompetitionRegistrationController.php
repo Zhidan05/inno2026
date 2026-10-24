@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Competition;
+use App\Models\PaymentMethod;
 use App\Models\Registration;
 use App\Models\TeamMember;
+use App\Services\ImageOptimizationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -35,7 +37,9 @@ class CompetitionRegistrationController extends Controller
             return redirect()->route('dashboard')->with('error', 'You already have an active registration for this competition.');
         }
 
-        return view('register-competition', compact('competition'));
+        $paymentMethods = PaymentMethod::active()->get();
+
+        return view('register-competition', compact('competition', 'paymentMethods'));
     }
 
     public function store(Request $request, Competition $competition)
@@ -64,8 +68,11 @@ class CompetitionRegistrationController extends Controller
         // Base Validation
         $rules = [
             'registration_mode' => ['required', Rule::in(['solo', 'team'])],
+            'payment_method_id' => $competition->requiresPayment()
+                ? ['nullable', 'exists:payment_methods,id']
+                : ['nullable'],
             'proof_of_payment' => $competition->requiresPayment()
-                ? ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:2048']
+                ? ['required', 'file', 'mimes:pdf,jpg,jpeg,png,webp', 'max:10240']
                 : ['nullable'],
         ];
 
@@ -99,7 +106,13 @@ class CompetitionRegistrationController extends Controller
         // Upload Proof (only for paid competitions with an uploaded file)
         $path = null;
         if ($competition->requiresPayment() && $request->hasFile('proof_of_payment')) {
-            $path = $request->file('proof_of_payment')->store('payment-proofs', 'public');
+            /** @var ImageOptimizationService $optimizationService */
+            $optimizationService = app(ImageOptimizationService::class);
+            $path = $optimizationService->optimizeAndStore(
+                $request->file('proof_of_payment'),
+                'payment-proofs',
+                ['allow_pdf' => true]
+            );
         }
 
         // Team name for solo
@@ -108,6 +121,7 @@ class CompetitionRegistrationController extends Controller
         // Create Registration
         $registration = Registration::create([
             'competition_id' => $competition->id,
+            'payment_method_id' => $validated['payment_method_id'] ?? null,
             'user_id' => Auth::id(),
             'registration_mode' => $validated['registration_mode'],
             'team_name' => $teamName,

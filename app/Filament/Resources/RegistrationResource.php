@@ -7,6 +7,7 @@ use App\Filament\Resources\RegistrationResource\Pages;
 use App\Filament\Resources\RegistrationResource\RelationManagers;
 use App\Models\Registration;
 use App\Models\Ticket;
+use App\Services\ImageOptimizationService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -132,10 +133,18 @@ class RegistrationResource extends Resource
                 Forms\Components\TextInput::make('team_name')
                     ->required()
                     ->maxLength(255),
+                Forms\Components\Select::make('payment_method_id')
+                    ->label('Metode Pembayaran')
+                    ->relationship('paymentMethod', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->visible(fn (?Registration $record) => auth()->user()?->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value]) && ($record ? $record->competition->requiresPayment() : true)),
                 Forms\Components\FileUpload::make('proof_of_payment')
                     ->disk('public')
-                    ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'])
+                    ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
+                    ->maxSize(10240)
                     ->directory('payment-proofs')
+                    ->saveUploadedFileUsing(ImageOptimizationService::filamentUploadHandler('payment-proofs', ['allow_pdf' => true]))
                     ->downloadable()
                     ->openable()
                     ->visible(fn (?Registration $record) => auth()->user()?->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value]) && ($record ? $record->competition->requiresPayment() : true)),
@@ -227,6 +236,11 @@ class RegistrationResource extends Resource
                     })
                     ->url(fn (Registration $record) => $record->proof_of_payment ? asset('storage/'.$record->proof_of_payment) : null)
                     ->openUrlInNewTab()
+                    ->visible(fn () => auth()->user()?->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])),
+                Tables\Columns\TextColumn::make('paymentMethod.name')
+                    ->label('Metode Bayar')
+                    ->placeholder('-')
+                    ->toggleable()
                     ->visible(fn () => auth()->user()?->hasRole([UserRole::ADMIN->value, UserRole::MODERATOR->value])),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()

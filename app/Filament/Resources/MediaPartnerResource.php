@@ -5,14 +5,12 @@ namespace App\Filament\Resources;
 use App\Enums\UserRole;
 use App\Filament\Resources\MediaPartnerResource\Pages;
 use App\Models\MediaPartner;
+use App\Services\ImageOptimizationService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class MediaPartnerResource extends Resource
 {
@@ -39,27 +37,11 @@ class MediaPartnerResource extends Resource
                     ->columnSpanFull(),
                 Forms\Components\FileUpload::make('logo')
                     ->image()
+                    ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml'])
+                    ->maxSize(10240)
                     ->required()
                     ->directory('media_partners')
-                    ->saveUploadedFileUsing(function (TemporaryUploadedFile $file): string {
-                        $img = @imagecreatefromstring($file->get());
-                        if (! $img) {
-                            return $file->store('media_partners', 'public');
-                        }
-                        imagepalettetotruecolor($img);
-                        imagealphablending($img, true);
-                        imagesavealpha($img, true);
-
-                        $filename = 'media_partners/'.Str::uuid().'.webp';
-                        ob_start();
-                        imagewebp($img, null, 80);
-                        $imageData = ob_get_clean();
-                        imagedestroy($img);
-
-                        Storage::disk('public')->put($filename, $imageData);
-
-                        return $filename;
-                    })
+                    ->saveUploadedFileUsing(ImageOptimizationService::filamentUploadHandler('media_partners'))
                     ->columnSpanFull(),
                 Forms\Components\TextInput::make('link')
                     ->url()

@@ -14,6 +14,7 @@ class Registration extends Model
 
     protected $fillable = [
         'competition_id',
+        'payment_method_id',
         'user_id',
         'registration_mode',
         'team_name',
@@ -37,6 +38,11 @@ class Registration extends Model
     public function competition(): BelongsTo
     {
         return $this->belongsTo(Competition::class);
+    }
+
+    public function paymentMethod(): BelongsTo
+    {
+        return $this->belongsTo(PaymentMethod::class);
     }
 
     public function user(): BelongsTo

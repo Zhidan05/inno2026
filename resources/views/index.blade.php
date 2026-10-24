@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>InnoElectrica EXPO 2026 | IEEE Student Branch Universitas Riau</title>
+  <title>InnoElectrica EXPO 2026</title>
   
   @include('partials.head-assets')
   @include('home.styles')
