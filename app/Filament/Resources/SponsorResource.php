@@ -5,14 +5,12 @@ namespace App\Filament\Resources;
 use App\Enums\UserRole;
 use App\Filament\Resources\SponsorResource\Pages;
 use App\Models\Sponsor;
+use App\Services\ImageOptimizationService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class SponsorResource extends Resource
 {
@@ -39,27 +37,11 @@ class SponsorResource extends Resource
                     ->columnSpanFull(),
                 Forms\Components\FileUpload::make('logo')
                     ->image()
+                    ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml'])
+                    ->maxSize(10240)
                     ->required()
                     ->directory('sponsors')
-                    ->saveUploadedFileUsing(function (TemporaryUploadedFile $file): string {
-                        $img = @imagecreatefromstring($file->get());
-                        if (! $img) {
-                            return $file->store('sponsors', 'public');
-                        }
-                        imagepalettetotruecolor($img);
-                        imagealphablending($img, true);
-                        imagesavealpha($img, true);
-
-                        $filename = 'sponsors/'.Str::uuid().'.webp';
-                        ob_start();
-                        imagewebp($img, null, 80);
-                        $imageData = ob_get_clean();
-                        imagedestroy($img);
-
-                        Storage::disk('public')->put($filename, $imageData);
-
-                        return $filename;
-                    })
+                    ->saveUploadedFileUsing(ImageOptimizationService::filamentUploadHandler('sponsors'))
                     ->columnSpanFull(),
                 Forms\Components\TextInput::make('link')
                     ->url()

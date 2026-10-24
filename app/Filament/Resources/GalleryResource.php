@@ -5,14 +5,12 @@ namespace App\Filament\Resources;
 use App\Enums\UserRole;
 use App\Filament\Resources\GalleryResource\Pages;
 use App\Models\Gallery;
+use App\Services\ImageOptimizationService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class GalleryResource extends Resource
 {
@@ -38,27 +36,11 @@ class GalleryResource extends Resource
                     ->columnSpanFull(),
                 Forms\Components\FileUpload::make('image')
                     ->image()
+                    ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/jpg', 'image/webp'])
+                    ->maxSize(10240)
                     ->required()
                     ->directory('gallery')
-                    ->saveUploadedFileUsing(function (TemporaryUploadedFile $file): string {
-                        $img = @imagecreatefromstring($file->get());
-                        if (! $img) {
-                            return $file->store('gallery', 'public');
-                        }
-                        imagepalettetotruecolor($img);
-                        imagealphablending($img, true);
-                        imagesavealpha($img, true);
-
-                        $filename = 'gallery/'.Str::uuid().'.webp';
-                        ob_start();
-                        imagewebp($img, null, 80);
-                        $imageData = ob_get_clean();
-                        imagedestroy($img);
-
-                        Storage::disk('public')->put($filename, $imageData);
-
-                        return $filename;
-                    })
+                    ->saveUploadedFileUsing(ImageOptimizationService::filamentUploadHandler('gallery'))
                     ->columnSpanFull(),
                 Forms\Components\TextInput::make('sort_order')
                     ->numeric()
